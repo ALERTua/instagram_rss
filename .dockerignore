@@ -4,8 +4,6 @@ litellm_uuid.txt
 *.cmd
 biome.json
 Modelfile
-.pre-commit-config.yaml
-ruff.toml
 
 # Git
 .git/
@@ -21,9 +19,8 @@ ruff.toml
 
 # Docker
 docker-compose.yml
-Dockerfile
+Dockerfile*
 .docker
-.dockerenv
 .dockerignore
 
 # Byte-compiled / optimized / DLL files
