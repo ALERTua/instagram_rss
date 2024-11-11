@@ -1,0 +1,21 @@
+[project]
+name = "instagram-rss"
+version = "0.1.0"
+description = "FastAPI RSS Feed Generator for an Instagram User"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "curl-cffi>=0.7.3",
+    "fastapi>=0.115.4",
+    "feedgen>=1.0.0",
+    "pendulum>=3.0.0",
+    "pydantic>=2.9.2",
+    "python-dotenv>=1.0.1",
+    "uvicorn>=0.32.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0.1",
+    "ruff>=0.7.3",
+]
