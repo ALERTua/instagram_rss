@@ -10,3 +10,4 @@ wheels/
 .dockerenv
 # Virtual environments
 .venv
+*/feed.xml

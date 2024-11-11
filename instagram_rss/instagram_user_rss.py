@@ -61,23 +61,47 @@ class InstagramUserRSS:
         return response.json().get("data", {}).get("user", {}).get("edge_owner_to_timeline_media", {}).get("edges", [])
 
     def generate_rss_feed(self, posts):
-        fg = FeedGenerator()
-        fg.id(f"{self.base_url}{self.username}/")
-        fg.title(f"{self.username}'s Instagram Feed")
-        fg.link(href=f"{self.base_url}{self.username}/")
-        fg.description(f"Instagram feed for user {self.username}")
+        feed = FeedGenerator()
+        feed.id(f"{self.base_url}{self.username}/")
+        feed.title(f"{self.username}'s Instagram Feed")
+        feed.link(href=f"{self.base_url}{self.username}/")
+        feed.description(f"Instagram feed for user {self.username}")
 
         for post in posts:
-            media = post["node"]
-            fe = fg.add_entry()
-            fe.id(f"{self.base_url}p/{media['shortcode']}/")
-            fe.link(href=f"{self.base_url}p/{media['shortcode']}/")
-            edges = media.get("edge_media_to_caption", {}).get("edges", [{}]) or [{}]
-            fe.title(edges[0].get("node", {}).get("text", "(no title)"))
-            fe.published(pendulum.from_timestamp(media["taken_at_timestamp"]))
-            fe.content(f'<img src="{media["display_url"]}" alt="Instagram Post" />')
+            main_node = post["node"]
+            entry = feed.add_entry()
+            post_link = f"{self.base_url}p/{main_node['shortcode']}/"
+            entry.id(post_link)
+            entry.link(href=post_link)
+            entry.author(name=self.username)
+            post_title = (main_node.get("edge_media_to_caption", {}).get("edges", [{}]) or [{}])[0].get(
+                "node", {}).get("text", "(no title)")
+            entry.title(post_title)
+            post_date = pendulum.from_timestamp(main_node["taken_at_timestamp"])
+            entry.published(post_date)
+            post_content_items = []
+            children = main_node.get("edge_sidecar_to_children", {}).get("edges", [{}])
+            child_nodes = [_.get("node", {}) for _ in children]
+            nodes = [main_node, *child_nodes]
+            nodes = [_ for _ in nodes if _]
+            for i, node in enumerate(nodes):
+                post_content = f'<a href="{post_link}?img_index={i+1}">'
 
-        return fg.rss_str(pretty=True)
+                if node.get("is_video"):
+                    post_content += f'<video controls><source src="{node["video_url"]}" type="video/mp4"></video>'
+                else:
+                    post_content += f'<img src="{node["display_url"]}"/>'
+
+                post_content += "</a>"
+                post_content_items.append(post_content)
+
+            entry.content("<br>".join(post_content_items))
+
+        if os.getenv("DEBUG", "0") == "1":
+            feed.rss_file("feed.xml", pretty=True)
+            import webbrowser
+            webbrowser.open("feed.xml")
+        return feed.rss_str(pretty=True)
 
     def get_rss(self):
         posts = self.fetch_posts()
@@ -85,4 +109,5 @@ class InstagramUserRSS:
 
 
 if __name__ == "__main__":
-    a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), username="alert_whooyalert")
+    a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), user_id=58622439872)
+    a.get_rss()
