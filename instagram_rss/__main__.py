@@ -5,10 +5,15 @@ import logging
 from fastapi import FastAPI, status, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from instagram_user_rss import InstagramUserRSS
-import constants
 # noinspection PyPackageRequirements
 from dotenv import load_dotenv
+
+try:
+    from instagram_user_rss import InstagramUserRSS
+    import constants
+except:  # noqa: E722
+    from .instagram_user_rss import InstagramUserRSS
+    from . import constants
 
 load_dotenv()
 

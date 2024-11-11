@@ -3,8 +3,12 @@ import os
 from curl_cffi import requests
 from feedgen.feed import FeedGenerator
 import pendulum
-from exceptions import UserNotFoundError
-import constants
+try:
+    from exceptions import UserNotFoundError
+    import constants
+except:  # noqa: E722
+    from .exceptions import UserNotFoundError
+    from . import constants
 
 
 class InstagramUserRSS:
