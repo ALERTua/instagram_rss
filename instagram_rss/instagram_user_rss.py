@@ -119,7 +119,11 @@ class InstagramUserRSS:
         url = f"{self.base_url}graphql/query"
         response = tools.get(url, headers=headers, params=params)
         assert response.headers.get("content-type", "").startswith("application/json"), "Expected JSON response"
-        return response.json().get("data", {}).get("user", {}).get("edge_owner_to_timeline_media", {}).get("edges", [])
+        return (
+            (response.json().get("data", {}).get("user", {}) or {})
+            .get("edge_owner_to_timeline_media", {})
+            .get("edges", [])
+        )
 
     def fetch_stories(self):
         LOG.info(f"Fetching stories for {self.username} ({self.user_id})")
