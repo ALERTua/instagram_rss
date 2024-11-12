@@ -58,8 +58,10 @@ class HealthCheck(BaseModel):
 @app.get("/instagram/{query}")
 async def instagram_query(
     query: str | int | None,
-    user_id: str | None = Query(None),
-    username: str | None = Query(None),
+    user_id: str | None = Query(default=None),
+    username: str | None = Query(default=None),
+    stories: bool | None = Query(default=True),
+    posts: bool | None = Query(default=True),
 ):
     user_id = user_id if user_id else (query if str(query).isnumeric() else None)
     username = username if username else (query if not str(query).isnumeric() else None)
@@ -70,7 +72,7 @@ async def instagram_query(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    cache_key = f"{query}-{user_id}-{username}"
+    cache_key = f"{query}-{user_id}-{username}-{posts}-{stories}"
     cached_response = cache.get(cache_key)
     if cached_response:
         return Response(content=cached_response, media_type="application/xml", status_code=status.HTTP_200_OK)
@@ -78,9 +80,12 @@ async def instagram_query(
     instagram_rss = InstagramUserRSS(session_id=env.SESSION_ID, username=username, user_id=user_id, timeout=env.TIMEOUT)
     if not user_id:
         user_id = instagram_rss.user_id
-        return RedirectResponse(url=f"/instagram/{user_id}", status_code=status.HTTP_302_FOUND)
+        return RedirectResponse(
+            url=f"/instagram/{user_id}?posts={posts}&stories={stories}",
+            status_code=status.HTTP_302_FOUND,
+        )
 
-    rss_content = instagram_rss.get_rss()
+    rss_content = instagram_rss.get_rss(posts=posts, stories=stories)
     cache.set(cache_key, rss_content)
     return Response(content=rss_content, media_type="application/xml", status_code=status.HTTP_200_OK)
 

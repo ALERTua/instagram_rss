@@ -219,7 +219,7 @@ class InstagramUserRSS:
                 image = story.get("image_versions2", {}).get("candidates", [{}])[0]
                 if image:
                     url = image["url"]
-                    post_content += f'<br><br><a href="{post_link}?img_index={i+1}"><img src="{url}"/></a>'
+                    post_content += f'<br><br><a href="{story_link}"><img src="{url}"/></a>'
 
             entry.content(post_content, type="html")
             entries.append(entry)
@@ -235,7 +235,7 @@ class InstagramUserRSS:
             webbrowser.open(filename)
         return feed.atom_str(pretty=env.DEBUG)
 
-    def get_rss(self):
-        posts = self.fetch_posts()
-        stories = self.fetch_stories()
-        return self.generate_rss_feed(posts, stories)
+    def get_rss(self, posts=True, stories=True):
+        posts = self.fetch_posts() if posts else []
+        stories = self.fetch_stories() if stories else []
+        return self.generate_rss_feed(posts=posts, stories=stories)
