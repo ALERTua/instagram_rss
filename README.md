@@ -39,5 +39,5 @@ MAX_CACHE_SIZE=100
 VERBOSE=0
 ```
 serves:
-- /instagram/{userid_or_username}
+- /instagram/{userid_or_username}?posts=True&stories=True
 - /health
