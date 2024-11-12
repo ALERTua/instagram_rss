@@ -31,8 +31,7 @@ class InstagramUserRSS:
             return self._user_id
 
         url = f"https://i.instagram.com/api/v1/users/web_profile_info/?username={self.username}"
-        user_agent = constants.MOBILE_USER_AGENT
-        response = tools.get(url, headers={"User-Agent": user_agent})
+        response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
         json_data = response.json()
         user_id = json_data.get("data", {}).get("user", {}).get("id")
         if user_id:
@@ -53,8 +52,7 @@ class InstagramUserRSS:
     def username(self):
         if not self._username:
             url = f"https://i.instagram.com/api/v1/users/{self.user_id}/info/"
-            user_agent = constants.MOBILE_USER_AGENT
-            response = tools.get(url, headers={"User-Agent": user_agent})
+            response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
             data = response.json()
             self._username = data["user"]["username"]
         return self._username
