@@ -1,13 +1,16 @@
 from __future__ import annotations
-import os
 from pprint import pformat
-from feedgen.feed import FeedGenerator
 import pendulum
+from datetime import datetime
+
+from feedgen.entry import FeedEntry
+from feedgen.feed import FeedGenerator
 from instagram_rss.exceptions import UserNotFoundError
-from instagram_rss import constants, tools
+from instagram_rss import constants, tools, env
 from global_logger import Log
 
 LOG = Log.get_logger()
+TZ = pendulum.tz.local_timezone()
 
 
 class InstagramUserRSS:
@@ -20,6 +23,7 @@ class InstagramUserRSS:
         self.cookies = {"sessionid": self.session_id, "ds_user_id": self.ds_user_id}
         self._full_name: str | None = None
         self._biography: str | None = None
+        self._icon_url: str | None = None
         self._private: bool | None = None
         self._followed: bool | None = None
         self._private: bool | None = None
@@ -52,6 +56,7 @@ class InstagramUserRSS:
             self._biography = user.get("biography")
             self._followed = user.get("followed_by_viewer")
             self._private = user.get("is_private")
+            self._icon_url = user.get("profile_pic_url")
             return
 
         LOG.error(f"{self._username or self._user_id} not found\n{pformat(user)}")
@@ -86,6 +91,12 @@ class InstagramUserRSS:
         return self._biography
 
     @property
+    def icon_url(self):
+        if self._icon_url is None:
+            self._get_user_data()
+        return self._icon_url
+
+    @property
     def followed(self):
         if self._followed is None:
             self._get_user_data()
@@ -102,6 +113,7 @@ class InstagramUserRSS:
         return f"{self.base_url}{self.username}"
 
     def fetch_posts(self):
+        LOG.info(f"Fetching posts for {self.username} ({self.user_id})")
         params = {"query_hash": constants.QUERY_HASH, "variables": {"id": self.user_id, "first": 10}}
         headers = {"Accept": "application/json; charset=utf-8"}
         url = f"{self.base_url}graphql/query"
@@ -109,25 +121,45 @@ class InstagramUserRSS:
         assert response.headers.get("content-type", "").startswith("application/json"), "Expected JSON response"
         return response.json().get("data", {}).get("user", {}).get("edge_owner_to_timeline_media", {}).get("edges", [])
 
-    def generate_rss_feed(self, posts):
+    def fetch_stories(self):
+        LOG.info(f"Fetching stories for {self.username} ({self.user_id})")
+        url = f"https://i.instagram.com/api/v1/feed/user/{self.user_id}/reel_media/"
+        response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
+        json_data = response.json()
+        return json_data.get("items", [])
+
+    def generate_rss_feed(self, posts: list, stories: list):  # noqa: C901, PLR0912, PLR0915
+        LOG.info(f"Generating RSS feed for {self.username} ({self.user_id})")
         feed = FeedGenerator()
         feed.id(self.url)
         feed.title(self.username)
-        feed.link(href=self.url)
+        if self.biography:
+            feed.subtitle(self.biography)
         feed.description(self.biography or "(no description)")
+        feed.link(href=self.url)
+        if self.icon_url:
+            feed.icon(self.icon_url)
+            feed.logo(self.icon_url)
 
+        entries: list[FeedEntry] = []
         if not posts and self.private and not self.followed:
-            entry = feed.add_entry()
+            LOG.info(f"No posts or private profile: {self.username} ({self.user_id})")
+            entry = FeedEntry()
             entry.id(feed.id())
             entry.link(feed.link())
             entry.author(name=self.full_name)
             entry.title(f"{self.username} private: {self.private} followed: {self.followed}")
-            entry.content(f'<a href="{self.url}">{self.username}</a> private: {self.private} followed: {self.followed}')
-            entry.published(pendulum.now())
+            entry.content(f"{self.username} private: {self.private} followed: {self.followed}")
+            post_date = datetime.fromtimestamp(pendulum.now(TZ).timestamp(), tz=TZ)
+            entry.published(post_date)
+            entry.updated(post_date)
+            entries.append(entry)
         else:
+            if posts:
+                LOG.info(f"Parsing {len(posts)} posts for {self.username} ({self.user_id})")
             for post in posts:
                 main_node = post["node"]
-                entry = feed.add_entry()
+                entry = FeedEntry()
                 post_link = f"{self.base_url}p/{main_node['shortcode']}/"
                 entry.id(post_link)
                 entry.link(href=post_link)
@@ -138,33 +170,68 @@ class InstagramUserRSS:
                     .get("text", "(no title)")
                 )
                 entry.title(post_title)
-                post_date = pendulum.from_timestamp(main_node["taken_at_timestamp"])
+                entry.source(url=post_link, title=post_title)
+                timestamp = main_node["taken_at_timestamp"]
+                post_date = datetime.fromtimestamp(timestamp, tz=TZ)
                 entry.published(post_date)
-                post_content_items = []
+                entry.updated(post_date)
                 children = main_node.get("edge_sidecar_to_children", {}).get("edges", [{}])
                 child_nodes = [_.get("node", {}) for _ in children]
                 nodes = [main_node, *child_nodes]
                 nodes = [_ for _ in nodes if _]
+                post_content = f"{self.username} <a href='{post_link}'>post</a><br>{post_title}"
                 for i, node in enumerate(nodes):
-                    post_content = f'<a href="{post_link}?img_index={i+1}">'
-
                     if node.get("is_video"):
-                        post_content += f'<video controls><source src="{node["video_url"]}" type="video/mp4"></video>'
+                        url = node["video_url"]
+                        post_content += f'<br><br><video controls><source src="{url}" type="video/mp4"></video>'
                     else:
-                        post_content += f'<img src="{node["display_url"]}"/>'
+                        url = node["display_url"]
+                        post_content += f'<br><br><a href="{post_link}?img_index={i+1}"><img src="{url}"/></a>'
 
-                    post_content += "</a>"
-                    post_content_items.append(post_content)
+                entry.content(post_content, type="html")
+                entries.append(entry)
 
-                entry.content("<br>".join(post_content_items))
+        if stories:
+            LOG.info(f"Parsing {len(stories)} stories for {self.username} ({self.user_id})")
+        for story in stories:
+            entry = FeedEntry()
+            story_link = f"{self.base_url}stories/{self.username}/{story['pk']}/"
+            entry.id(story_link)
+            entry.link(href=story_link)
+            entry.author(name=self.full_name)
+            title = f"{self.username} story"
+            entry.title(title)
+            entry.source(url=story_link, title=title)
+            post_content = f'{self.username} <a href="{story_link}">story</a><br>{title}'
+            timestamp = story["taken_at"]
+            post_date = datetime.fromtimestamp(timestamp, tz=TZ)
+            entry.published(post_date)
+            entry.updated(post_date)
+            video = story.get("video_versions", [{}])[0]
+            if video:
+                url = video["url"]
+                post_content += f'<br><br><video controls><source src="{url}" type="video/mp4"></video>'
+            else:
+                image = story.get("image_versions2", {}).get("candidates", [{}])[0]
+                if image:
+                    url = image["url"]
+                    post_content += f'<br><br><a href="{post_link}?img_index={i+1}"><img src="{url}"/></a>'
 
-        if os.getenv("DEBUG", "0") == "1":
-            feed.rss_file("feed.xml", pretty=True)
+            entry.content(post_content, type="html")
+            entries.append(entry)
+
+        entries.sort(key=lambda x: x.published(), reverse=False)
+        feed.entry(entries)
+
+        if env.DEBUG:
+            filename = "feed.atom"
+            feed.atom_file(filename, pretty=True)
             import webbrowser
 
-            webbrowser.open("feed.xml")
-        return feed.rss_str(pretty=True)
+            webbrowser.open(filename)
+        return feed.atom_str(pretty=env.DEBUG)
 
     def get_rss(self):
         posts = self.fetch_posts()
-        return self.generate_rss_feed(posts)
+        stories = self.fetch_stories()
+        return self.generate_rss_feed(posts, stories)

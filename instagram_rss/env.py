@@ -9,6 +9,7 @@ load_dotenv()
 VERBOSE = strtobool(os.getenv("VERBOSE", "0"))
 log_level = Log.Levels.DEBUG if VERBOSE else Log.Levels.INFO
 LOG = Log.get_logger(level=log_level)
+DEBUG = strtobool(os.getenv("DEBUG", "0"))
 
 SESSION_ID = os.getenv("SESSION_ID")
 assert SESSION_ID, "SESSION_ID environment variable not set"
