@@ -18,3 +18,6 @@ IMPERSONATE = os.getenv("IMPERSONATE", "chrome")
 CALLS_MAX = int(os.getenv("CALLS_MAX", "1"))
 CALLS_PERIOD = int(os.getenv("CALLS_PERIOD", "5"))
 GET_RETRY_DELAY_SEC = int(os.getenv("GET_RETRY_DELAY_SEC", "15"))
+
+MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", "100"))  # Max number of items in cache
+CACHE_DURATION = int(os.getenv("CACHE_DURATION", "3600"))  # Cache duration in seconds

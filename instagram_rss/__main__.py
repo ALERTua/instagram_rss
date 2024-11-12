@@ -1,22 +1,57 @@
 from __future__ import annotations
 import os
-
+import time
+from collections import OrderedDict
 from fastapi import FastAPI, status, Response, Query
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
+from dataclasses import dataclass
 from global_logger import Log
-
 from instagram_rss import env
 from instagram_rss.instagram_user_rss import InstagramUserRSS
 
 LOG = Log.get_logger()
-
 app = FastAPI()
 
 
-class HealthCheck(BaseModel):
-    """Response model to validate and return when performing a health check."""
+@dataclass
+class CacheItem:
+    """Data structure for an item in the LRU cache."""
 
+    data: str
+    timestamp: float  # Timestamp when the item was added to cache
+
+
+class LRUCache:
+    def __init__(self, max_size: int, duration: int):
+        self.cache = OrderedDict()
+        self.max_size = max_size
+        self.duration = duration
+
+    def get(self, key: str) -> str | None:
+        item = self.cache.get(key)
+        if item:
+            if time.time() - item.timestamp < self.duration:
+                self.cache.move_to_end(key)  # Mark as recently accessed
+                LOG.debug("Returning cached response")
+                return item.data
+
+            del self.cache[key]  # Remove expired item
+        return None
+
+    def set(self, key: str, value: str):
+        if key in self.cache:
+            self.cache.move_to_end(key)  # Update order if key exists
+        elif len(self.cache) >= self.max_size:
+            self.cache.popitem(last=False)  # Remove oldest item if max size reached
+        self.cache[key] = CacheItem(data=value, timestamp=time.time())
+
+
+# Initialize cache with max size and duration
+cache = LRUCache(max_size=env.MAX_CACHE_SIZE, duration=env.CACHE_DURATION)
+
+
+class HealthCheck(BaseModel):
     status: str = "OK"
 
 
@@ -35,12 +70,18 @@ async def instagram_query(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
+    cache_key = f"{query}-{user_id}-{username}"
+    cached_response = cache.get(cache_key)
+    if cached_response:
+        return Response(content=cached_response, media_type="application/xml", status_code=status.HTTP_200_OK)
+
     instagram_rss = InstagramUserRSS(session_id=env.SESSION_ID, username=username, user_id=user_id, timeout=env.TIMEOUT)
     if not user_id:
         user_id = instagram_rss.user_id
         return RedirectResponse(url=f"/instagram/{user_id}", status_code=status.HTTP_302_FOUND)
 
     rss_content = instagram_rss.get_rss()
+    cache.set(cache_key, rss_content)
     return Response(content=rss_content, media_type="application/xml", status_code=status.HTTP_200_OK)
 
 

@@ -67,8 +67,8 @@ class InstagramUserRSS:
     def generate_rss_feed(self, posts):
         feed = FeedGenerator()
         feed.id(f"{self.base_url}{self.username}/")
-        feed.title(f"{self.username}'s Instagram Feed")
-        feed.link(href=f"{self.base_url}{self.username}/")
+        feed.title(f"{self.username}")
+        feed.link(href=f"{self.base_url}{self.username}")
         feed.description(f"Instagram feed for user {self.username}")
 
         for post in posts:

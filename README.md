@@ -23,11 +23,18 @@ IMPERSONATE=chrome
 
 # max GET calls
 CALLS_MAX=1
+
 # in this period in seconds
 CALLS_PERIOD=5
 
 # retry failed GET calls after this delay in seconds
 GET_RETRY_DELAY_SEC=15
+
+# query cache duration in seconds
+CACHE_DURATION=3600
+
+# maximum responses cache quantity
+MAX_CACHE_SIZE=100
 
 VERBOSE=0
 ```
