@@ -55,7 +55,7 @@ class InstagramUserRSS:
             self._private = user.get("is_private")
             return
 
-        LOG.error(f"{self._username or self._user_id} not found\n{pformat(json_data)}")
+        LOG.error(f"{self._username or self._user_id} not found\n{pformat(user)}")
         raise UserNotFoundError
 
     @property
