@@ -4,6 +4,8 @@
 // @version      1.0
 // @description  Add Instagram RSS Feed URL Button
 // @author       Alexey ALERT Rubasheff
+// @homepageURL  https://github.com/ALERTua/instagram_rss/blob/main/userscript/userscript.user.js
+// @source       https://github.com/ALERTua/instagram_rss/raw/refs/heads/main/userscript/userscript.user.js
 // @match        *://www.instagram.com/*
 // @require http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // ==/UserScript==
