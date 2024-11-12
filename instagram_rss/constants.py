@@ -1,1 +1,2 @@
 TIMEOUT_DEFAULT = 60
+MOBILE_USER_AGENT = "Instagram 356.0.0.41.101 Android (23/6.0.1; 538dpi; 1440x2560; LGE; LG-E425f; vee3e; en_US"
