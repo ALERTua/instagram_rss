@@ -112,9 +112,9 @@ class InstagramUserRSS:
     def generate_rss_feed(self, posts):
         feed = FeedGenerator()
         feed.id(self.url)
-        feed.title(f"{self.username}")
+        feed.title(self.username)
         feed.link(href=self.url)
-        feed.description(self.biography)
+        feed.description(self.biography or "(no description)")
 
         if not posts and self.private and not self.followed:
             entry = feed.add_entry()
