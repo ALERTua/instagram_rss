@@ -1,37 +1,15 @@
 from __future__ import annotations
 import os
-import logging
 
-from fastapi import FastAPI, status, Response
+from fastapi import FastAPI, status, Response, Query
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-# noinspection PyPackageRequirements
-from dotenv import load_dotenv
+from global_logger import Log
 
-try:
-    from instagram_user_rss import InstagramUserRSS
-    import constants
-except:  # noqa: E722
-    from .instagram_user_rss import InstagramUserRSS
-    from . import constants
+from instagram_rss import env
+from instagram_rss.instagram_user_rss import InstagramUserRSS
 
-load_dotenv()
-
-VERBOSE = os.getenv("VERBOSE", "0")
-log_level = logging.DEBUG if VERBOSE == "1" else logging.INFO
-
-SESSION_ID = os.getenv("SESSION_ID")
-assert SESSION_ID, "SESSION_ID environment variable not set"
-
-TIMEOUT = int(os.getenv("TIMEOUT", str(constants.TIMEOUT_DEFAULT)))
-
-logging.basicConfig(
-    level=log_level,
-    format="%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s",
-    handlers=[logging.StreamHandler()],
-)
-logger = logging.getLogger(__name__)
-logger.info(f"Logging level set to {'DEBUG' if log_level == logging.DEBUG else 'INFO'}")
+LOG = Log.get_logger()
 
 app = FastAPI()
 
@@ -43,17 +21,17 @@ class HealthCheck(BaseModel):
 
 
 @app.get("/instagram/{query}")
-async def instagram_query(query: str | int):
-    user_id = query if query and str(query).isnumeric() else None
-    username = query if query and not str(query).isnumeric() else None
-    if not user_id and not username:
+async def instagram_query(query: str | int | None, user_id: str | None = Query(None), username: str | None = Query(None)):
+    user_id = user_id if user_id else (query if str(query).isnumeric() else None)
+    username = username if username else (query if not str(query).isnumeric() else None)
+    if not any([user_id, username]):
         return Response(
             content="Please provide a username or user_id",
             media_type="text/plain",
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    instagram_rss = InstagramUserRSS(session_id=SESSION_ID, username=username, user_id=user_id, timeout=TIMEOUT)
+    instagram_rss = InstagramUserRSS(session_id=env.SESSION_ID, username=username, user_id=user_id, timeout=env.TIMEOUT)
     if not user_id:
         user_id = instagram_rss.user_id
         return RedirectResponse(url=f"/instagram/{user_id}", status_code=status.HTTP_302_FOUND)
@@ -83,7 +61,7 @@ def get_health() -> HealthCheck:
         HealthCheck: Returns a JSON response with the health status
 
     """
-    logger.info("Health check endpoint accessed")
+    LOG.debug("Health check endpoint accessed")
     return HealthCheck(status="OK")
 
 

@@ -1,8 +1,12 @@
 version = 1
 requires-python = ">=3.12"
 resolution-markers = [
-    "python_full_version < '3.13'",
-    "python_full_version >= '3.13'",
+    "python_full_version < '3.13' and platform_system == 'Windows' and platform_version >= '10.0.18362'",
+    "python_full_version < '3.13' and platform_system == 'Windows' and platform_version < '10.0.18362'",
+    "python_full_version < '3.13' and platform_system != 'Windows'",
+    "python_full_version >= '3.13' and platform_system == 'Windows' and platform_version >= '10.0.18362'",
+    "python_full_version >= '3.13' and platform_system == 'Windows' and platform_version < '10.0.18362'",
+    "python_full_version >= '3.13' and platform_system != 'Windows'",
 ]
 
 [[package]]
@@ -100,6 +104,18 @@ wheels = [
 ]
 
 [[package]]
+name = "colorlog"
+version = "6.8.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/38/2992ff192eaa7dd5a793f8b6570d6bbe887c4fbbf7e72702eb0a693a01c8/colorlog-6.8.2.tar.gz", hash = "sha256:3e3e079a41feb5a1b64f978b5ea4f46040a94f11f0e8bbb8261e3dbbeca64d44", size = 16529 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f3/18/3e867ab37a24fdf073c1617b9c7830e06ec270b1ea4694a624038fc40a03/colorlog-6.8.2-py3-none-any.whl", hash = "sha256:4dcbb62368e2800cb3c5abd348da7e53f6c362dda502ec27c560b2e58a66bd33", size = 11357 },
+]
+
+[[package]]
 name = "curl-cffi"
 version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
@@ -164,6 +180,22 @@ wheels = [
 ]
 
 [[package]]
+name = "global-logger"
+version = "0.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama" },
+    { name = "colorlog" },
+    { name = "pendulum" },
+    { name = "win-unicode-console", version = "0.4", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Windows' and platform_version >= '10.0.18362'" },
+    { name = "win-unicode-console", version = "0.5", source = { registry = "https://pypi.org/simple" }, marker = "platform_system == 'Windows' and platform_version < '10.0.18362'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5b/c5/f50df949d0b052196d95e6f959b91c6a5b39be42694acf0811aa4c507692/global_logger-0.4.2.tar.gz", hash = "sha256:0d445790680a46d706add55f03ee9ed0e383c771b8a78d3924971337c18ffc8d", size = 7284 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/4b/d3f843ea58cf5d0a7d75c35d87ab2be92b4e402dcff4ccb36ab33522c5c0/global_logger-0.4.2-py2.py3-none-any.whl", hash = "sha256:b5382e0867326acb786b1ddfa92c455e6e5b3cf9525d6794d95f565b46ec9690", size = 8151 },
+]
+
+[[package]]
 name = "h11"
 version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -198,9 +230,12 @@ dependencies = [
     { name = "curl-cffi" },
     { name = "fastapi" },
     { name = "feedgen" },
+    { name = "global-logger" },
     { name = "pendulum" },
     { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "ratelimit" },
+    { name = "setuptools" },
     { name = "uvicorn" },
 ]
 
@@ -215,9 +250,12 @@ requires-dist = [
     { name = "curl-cffi", specifier = ">=0.7.3" },
     { name = "fastapi", specifier = ">=0.115.4" },
     { name = "feedgen", specifier = ">=1.0.0" },
+    { name = "global-logger", specifier = ">=0.4.2" },
     { name = "pendulum", specifier = ">=3.0.0" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "ratelimit", specifier = ">=2.2.1" },
+    { name = "setuptools", specifier = ">=75.3.0" },
     { name = "uvicorn", specifier = ">=0.32.0" },
 ]
 
@@ -432,6 +470,12 @@ wheels = [
 ]
 
 [[package]]
+name = "ratelimit"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ab/38/ff60c8fc9e002d50d48822cc5095deb8ebbc5f91a6b8fdd9731c87a147c9/ratelimit-2.2.1.tar.gz", hash = "sha256:af8a9b64b821529aca09ebaf6d8d279100d766f19e90b5059ac6a718ca6dee42", size = 5251 }
+
+[[package]]
 name = "ruff"
 version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
@@ -454,6 +498,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/b0/5c/efdb4777686683a8edce94ffd812783bddcd3d2454d38c5ac193fef7c500/ruff-0.7.3-py3-none-win32.whl", hash = "sha256:4ba81a5f0c5478aa61674c5a2194de8b02652f17addf8dfc40c8937e6e7d79fc", size = 8611095 },
     { url = "https://files.pythonhosted.org/packages/bb/b8/28fbc6a4efa50178f973972d1c84b2d0a33cdc731588522ab751ac3da2f5/ruff-0.7.3-py3-none-win_amd64.whl", hash = "sha256:588a9ff2fecf01025ed065fe28809cd5a53b43505f48b69a1ac7707b1b7e4088", size = 9418283 },
     { url = "https://files.pythonhosted.org/packages/3f/77/b587cba6febd5e2003374f37eb89633f79f161e71084f94057c8653b7fb3/ruff-0.7.3-py3-none-win_arm64.whl", hash = "sha256:1713e2c5545863cdbfe2cbce21f69ffaf37b813bfd1fb3b90dc9a6f1963f5a8c", size = 8725228 },
+]
+
+[[package]]
+name = "setuptools"
+version = "75.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/22/a438e0caa4576f8c383fa4d35f1cc01655a46c75be358960d815bfbb12bd/setuptools-75.3.0.tar.gz", hash = "sha256:fba5dd4d766e97be1b1681d98712680ae8f2f26d7881245f2ce9e40714f1a686", size = 1351577 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/12/282ee9bce8b58130cb762fbc9beabd531549952cac11fc56add11dcb7ea0/setuptools-75.3.0-py3-none-any.whl", hash = "sha256:f2504966861356aa38616760c0f66568e535562374995367b4e69c7143cf6bcd", size = 1251070 },
 ]
 
 [[package]]
@@ -563,3 +616,23 @@ sdist = { url = "https://files.pythonhosted.org/packages/8c/b3/7b6a79c5c8cf6d90e
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ae/92/78324ff89391e00c8f4cf6b8526c41c6ef36b4ea2d2c132250b1a6fc2b8d/virtualenv-20.27.1-py3-none-any.whl", hash = "sha256:f11f1b8a29525562925f745563bfd48b189450f61fb34c4f9cc79dd5aa32a1f4", size = 3117838 },
 ]
+
+[[package]]
+name = "win-unicode-console"
+version = "0.4"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.13' and platform_system == 'Windows' and platform_version >= '10.0.18362'",
+    "python_full_version >= '3.13' and platform_system == 'Windows' and platform_version >= '10.0.18362'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1f/10/bf87d78e5400fe7bf179fb3d04ef222c93e5efc2a8e8d1bebdc08308db32/win_unicode_console-0.4.zip", hash = "sha256:7c7c6ec4365bb64672ac09bc439c9415da7c40705a431eb20538b3d94b09bbac", size = 27227 }
+
+[[package]]
+name = "win-unicode-console"
+version = "0.5"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version < '3.13' and platform_system == 'Windows' and platform_version < '10.0.18362'",
+    "python_full_version >= '3.13' and platform_system == 'Windows' and platform_version < '10.0.18362'",
+]
+sdist = { url = "https://files.pythonhosted.org/packages/89/8d/7aad74930380c8972ab282304a2ff45f3d4927108bb6693cabcc9fc6a099/win_unicode_console-0.5.zip", hash = "sha256:d4142d4d56d46f449d6f00536a73625a871cba040f0bc1a2e305a04578f07d1e", size = 31420 }

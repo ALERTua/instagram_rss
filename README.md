@@ -11,9 +11,25 @@ FastAPI RSS Feed Generator for an Instagram User
 .env:
 ```
 PORT=8000
+
 # "sessionid" cookie
 SESSION_ID=123456783%1AIU7GABCDqhAB12%1A0%3ABYeDD33-3hdc3U2RlIyeS3mzfH1GDlrCST8GXqy_3g
+
+# GET requests timeout
 TIMEOUT=60
+
+# impersonate this browser
+IMPERSONATE=chrome
+
+# max GET calls
+CALLS_MAX=1
+# in this period in seconds
+CALLS_PERIOD=5
+
+# retry failed GET calls after this delay in seconds
+GET_RETRY_DELAY_SEC=15
+
+VERBOSE=0
 ```
 serves:
 - /instagram/{userid_or_username}

@@ -8,9 +8,12 @@ dependencies = [
     "curl-cffi>=0.7.3",
     "fastapi>=0.115.4",
     "feedgen>=1.0.0",
+    "global-logger>=0.4.2",
     "pendulum>=3.0.0",
     "pydantic>=2.9.2",
     "python-dotenv>=1.0.1",
+    "ratelimit>=2.2.1",
+    "setuptools>=75.3.0",
     "uvicorn>=0.32.0",
 ]
 

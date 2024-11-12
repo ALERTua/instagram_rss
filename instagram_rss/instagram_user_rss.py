@@ -3,12 +3,11 @@ import os
 from curl_cffi import requests
 from feedgen.feed import FeedGenerator
 import pendulum
-try:
-    from exceptions import UserNotFoundError
-    import constants
-except:  # noqa: E722
-    from .exceptions import UserNotFoundError
-    from . import constants
+from instagram_rss.exceptions import UserNotFoundError
+from instagram_rss import constants, tools
+from global_logger import Log
+
+LOG = Log.get_logger()
 
 
 class InstagramUserRSS:
@@ -33,10 +32,10 @@ class InstagramUserRSS:
             return self._user_id
 
         url = f"{self.base_url}web/search/topsearch/?query={self.username}"
-        response = requests.get(url, cookies=self.cookies, impersonate=self.impersonate, timeout=self.timeout)
+        response = tools.get(url, cookies=self.cookies)
         data = response.json()
         for user in data["users"]:
-            if user["user"]["username"].lower() == self.username.lower():
+            if user.get("user", {}).get("username", "").lower() == self.username.lower():
                 self._user_id = user["user"]["pk"]
                 return self._user_id
 
@@ -47,7 +46,7 @@ class InstagramUserRSS:
         if not self._username:
             url = f"https://i.instagram.com/api/v1/users/{self.user_id}/info/"
             user_agent = "Instagram 356.0.0.41.101 Android (23/6.0.1; 538dpi; 1440x2560; LGE; LG-E425f; vee3e; en_US"
-            response = requests.get(url, headers={"User-Agent": user_agent}, timeout=self.timeout)
+            response = tools.get(url, headers={"User-Agent": user_agent})
             data = response.json()
             self._username = data["user"]["username"]
         return self._username
@@ -56,9 +55,15 @@ class InstagramUserRSS:
         params = {"query_hash": self.query_hash, "variables": {"id": self.user_id, "first": 10}}
         headers = {"Accept": "application/json; charset=utf-8"}
         url = f"{self.base_url}graphql/query"
-        response = requests.get(url, headers=headers, impersonate=self.impersonate, timeout=self.timeout, params=params)
+        response = tools.get(url, headers=headers, params=params)
         assert response.headers.get("content-type", "").startswith("application/json"), "Expected JSON response"
-        return response.json().get("data", {}).get("user", {}).get("edge_owner_to_timeline_media", {}).get("edges", [])
+        out = response.json().get("data", {}).get("user", {}).get("edge_owner_to_timeline_media", {}).get("edges", [])
+        if out and not self._username and self._user_id:
+            for post in out:
+                if post["node"]["owner"]["id"] == self._user_id:
+                    self._username = post["node"]["owner"]["username"]
+                    break
+        return out
 
     def generate_rss_feed(self, posts):
         feed = FeedGenerator()
@@ -109,5 +114,7 @@ class InstagramUserRSS:
 
 
 if __name__ == "__main__":
-    a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), user_id=58622439872)
-    a.get_rss()
+    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), user_id=8643439439)
+    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), username='alert_whooyalert')
+    # a.get_rss()
+    pass
