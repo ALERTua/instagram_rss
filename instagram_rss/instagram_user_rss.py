@@ -1,6 +1,5 @@
 import os
 
-from curl_cffi import requests
 from feedgen.feed import FeedGenerator
 import pendulum
 from instagram_rss.exceptions import UserNotFoundError
@@ -79,8 +78,11 @@ class InstagramUserRSS:
             entry.id(post_link)
             entry.link(href=post_link)
             entry.author(name=self.username)
-            post_title = (main_node.get("edge_media_to_caption", {}).get("edges", [{}]) or [{}])[0].get(
-                "node", {}).get("text", "(no title)")
+            post_title = (
+                (main_node.get("edge_media_to_caption", {}).get("edges", [{}]) or [{}])[0]
+                .get("node", {})
+                .get("text", "(no title)")
+            )
             entry.title(post_title)
             post_date = pendulum.from_timestamp(main_node["taken_at_timestamp"])
             entry.published(post_date)
@@ -105,6 +107,7 @@ class InstagramUserRSS:
         if os.getenv("DEBUG", "0") == "1":
             feed.rss_file("feed.xml", pretty=True)
             import webbrowser
+
             webbrowser.open("feed.xml")
         return feed.rss_str(pretty=True)
 
@@ -114,7 +117,7 @@ class InstagramUserRSS:
 
 
 if __name__ == "__main__":
-    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), user_id=8643439439)
-    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), username='alert_whooyalert')
-    # a.get_rss()
+    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), user_id=8643439439)  # noqa: ERA001
+    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), username='alert_whooyalert')  # noqa: ERA001
+    # a.get_rss()  # noqa: ERA001
     pass

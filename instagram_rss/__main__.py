@@ -21,7 +21,11 @@ class HealthCheck(BaseModel):
 
 
 @app.get("/instagram/{query}")
-async def instagram_query(query: str | int | None, user_id: str | None = Query(None), username: str | None = Query(None)):
+async def instagram_query(
+    query: str | int | None,
+    user_id: str | None = Query(None),
+    username: str | None = Query(None),
+):
     user_id = user_id if user_id else (query if str(query).isnumeric() else None)
     username = username if username else (query if not str(query).isnumeric() else None)
     if not any([user_id, username]):
