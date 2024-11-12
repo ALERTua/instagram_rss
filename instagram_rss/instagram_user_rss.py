@@ -35,16 +35,15 @@ class InstagramUserRSS:
             raise UserNotFoundError
 
         LOG.debug(f"Getting user data for {self._username or self._user_id}")
-        if self._username:
-            url = f"https://i.instagram.com/api/v1/users/web_profile_info/?username={self.username}"
+        if self._user_id:
+            url = f"https://i.instagram.com/api/v1/users/{self._user_id}/info/"
+            response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
+            user = response.json().get("user", {})
         else:
-            url = f"https://i.instagram.com/api/v1/users/{self.user_id}/info/"
+            url = f"https://i.instagram.com/api/v1/users/web_profile_info/?username={self._username}"
+            response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
+            user = response.json().get("data", {}).get("user", {})
 
-        response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
-        json_data = response.json()
-
-        data = json_data.get("data", {})
-        user = data.get("user", {})
         user_id = user.get("id")
         if user_id:
             self.user_id = user_id
@@ -169,10 +168,3 @@ class InstagramUserRSS:
     def get_rss(self):
         posts = self.fetch_posts()
         return self.generate_rss_feed(posts)
-
-
-if __name__ == "__main__":
-    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), user_id=8643439439)  # noqa: ERA001
-    # a = InstagramUserRSS(session_id=os.getenv("SESSION_ID"), username="alert_whooyalert")  # noqa: ERA001
-    # a.get_rss()  # noqa: ERA001
-    pass
