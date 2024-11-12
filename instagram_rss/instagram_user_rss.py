@@ -30,23 +30,24 @@ class InstagramUserRSS:
         return self.session_id.split("%")[0] if self.session_id else None
 
     def _get_user_data(self):
+        if not any([self._username, self._user_id]):
+            LOG.error("Cannot get user data with no username or user_id")
+            raise UserNotFoundError
+
+        LOG.debug(f"Getting user data for {self._username or self._user_id}")
         if self._username:
             url = f"https://i.instagram.com/api/v1/users/web_profile_info/?username={self.username}"
-            response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
-            json_data = response.json()
-        elif self._user_id:
-            url = f"https://i.instagram.com/api/v1/users/{self.user_id}/info/"
-            response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
-            json_data = response.json()
         else:
-            LOG.error("Cannot get user data with no username or user_id")
-            return
+            url = f"https://i.instagram.com/api/v1/users/{self.user_id}/info/"
+
+        response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
+        json_data = response.json()
 
         data = json_data.get("data", {})
         user = data.get("user", {})
         user_id = user.get("id")
         if user_id:
-            self._user_id = user_id
+            self.user_id = user_id
             self._username = user.get("username")
             self._full_name = user.get("full_name")
             self._biography = user.get("biography")
@@ -61,6 +62,10 @@ class InstagramUserRSS:
         if self._user_id is None:
             self._get_user_data()
         return self._user_id
+
+    @user_id.setter
+    def user_id(self, value):
+        self._user_id = int(value)
 
     @property
     def username(self):
