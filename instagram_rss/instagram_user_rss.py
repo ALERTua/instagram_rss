@@ -1,236 +1,161 @@
 from __future__ import annotations
-from pprint import pformat
 import pendulum
 from datetime import datetime
-
-from curl_cffi import requests
+from itertools import islice
+from typing import TYPE_CHECKING
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
-from instagram_rss.exceptions import UserNotFoundError
-from instagram_rss import constants, tools, env
+from instagram_rss import env, constants
 from global_logger import Log
+
+if TYPE_CHECKING:
+    from instaloader import Profile, NodeIterator, Post, Story, PostSidecarNode, Instaloader
 
 LOG = Log.get_logger()
 TZ = pendulum.tz.local_timezone()
 
 
+def rss_image(url, i, post_link):
+    link = f"{post_link}?img_index={i+1}"
+    return f'<br><br><img src="{url}"/><a href="{link}">{link}</a><br>'
+
+
+def rss_image_story(url, story_link):
+    return f'<br><br><img src="{url}"/><a href="{story_link}">{story_link}</a><br>'
+
+
+def rss_video(url):
+    return f'<br><br><video controls><source src="{url}" type="video/mp4"></video>'
+
+
 class InstagramUserRSS:
-    def __init__(self, session_id, username=None, user_id=None, timeout=None):
-        assert username or user_id, "Either username or user_id must be provided"
-        self._username = username
-        self.session_id = session_id
-        self._user_id = user_id
+    def __init__(self, profile: Profile, il: Instaloader):
+        assert profile, "profile must be provided"
+        self.profile: Profile = profile
+        self.il: Instaloader = il
         self.base_url = "https://www.instagram.com/"
-        self.cookies = {"sessionid": self.session_id, "ds_user_id": self.ds_user_id}
-        self._full_name: str | None = None
-        self._biography: str | None = None
-        self._icon_url: str | None = None
-        self._private: bool | None = None
-        self._followed: bool | None = None
-        self._private: bool | None = None
-        self.timeout = timeout or constants.TIMEOUT_DEFAULT
-
-    @property
-    def ds_user_id(self):
-        return self.session_id.split("%")[0] if self.session_id else None
-
-    def _get_user_data(self):
-        if not any([self._username, self._user_id]):
-            LOG.error("Cannot get user data with no username or user_id")
-            raise UserNotFoundError
-
-        LOG.debug(f"Getting user data for {self._username or self._user_id}")
-        if self._user_id:
-            url = f"https://i.instagram.com/api/v1/users/{self._user_id}/info/"
-            response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
-            user = response.json().get("user", {})
-        else:
-            url = f"https://i.instagram.com/api/v1/users/web_profile_info/?username={self._username}"
-            response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
-            user = response.json().get("data", {}).get("user", {})
-
-        user_id = user.get("id")
-        if user_id:
-            self.user_id = user_id
-            self._username = user.get("username")
-            self._full_name = user.get("full_name")
-            self._biography = user.get("biography")
-            self._followed = user.get("followed_by_viewer")
-            self._private = user.get("is_private")
-            self._icon_url = user.get("profile_pic_url")
-            return
-
-        LOG.error(f"{self._username or self._user_id} not found\n{pformat(user)}")
-        raise UserNotFoundError
-
-    @property
-    def user_id(self):
-        if self._user_id is None:
-            self._get_user_data()
-        return self._user_id
-
-    @user_id.setter
-    def user_id(self, value):
-        self._user_id = int(value)
-
-    @property
-    def username(self):
-        if self._username is None:
-            self._get_user_data()
-        return self._username
-
-    @property
-    def full_name(self):
-        if self._full_name is None:
-            self._get_user_data()
-        return self._full_name
-
-    @property
-    def biography(self):
-        if self._biography is None:
-            self._get_user_data()
-        return self._biography
-
-    @property
-    def icon_url(self):
-        if self._icon_url is None:
-            self._get_user_data()
-        return self._icon_url
-
-    @property
-    def followed(self):
-        if self._followed is None:
-            self._get_user_data()
-        return self._followed
-
-    @property
-    def private(self):
-        if self._private is None:
-            self._get_user_data()
-        return self._private
 
     @property
     def url(self):
-        return f"{self.base_url}{self.username}"
+        return f"{self.base_url}{self.profile.username}"
 
-    def fetch_posts(self):
-        LOG.info(f"Fetching posts for {self.username} ({self.user_id})")
-        params = {"query_hash": tools.post_queryhash(), "variables": {"id": self.user_id, "first": 50}}
-        headers = {"Accept": "application/json; charset=utf-8"}
-        url = f"{self.base_url}graphql/query"
-        response = requests.get(url, headers=headers, params=params, timeout=env.TIMEOUT, impersonate=env.IMPERSONATE)
-        if response.status_code == 401:  # noqa: PLR2004
-            LOG.error(
-                f"Failed to get posts for {self.username} ({self.user_id}):"
-                f" {response.status_code} {response.json().get("message")}",
-            )
-            return []
-
-        assert response.headers.get("content-type", "").startswith("application/json"), "Expected JSON response"
-        return (
-            (response.json().get("data", {}).get("user", {}) or {})
-            .get("edge_owner_to_timeline_media", {})
-            .get("edges", [])
-        )
-
-    def fetch_stories(self):
-        LOG.info(f"Fetching stories for {self.username} ({self.user_id})")
-        url = f"https://i.instagram.com/api/v1/feed/user/{self.user_id}/reel_media/"
-        response = tools.get(url, cookies=self.cookies, headers={"User-Agent": constants.MOBILE_USER_AGENT})
-        json_data = response.json()
-        return json_data.get("items", [])
-
-    def generate_rss_feed(self, posts: list, stories: list):  # noqa: C901, PLR0912, PLR0915
-        LOG.info(f"Generating RSS feed for {self.username} ({self.user_id})")
+    def generate_rss_feed(  # noqa: PLR0915, PLR0913, PLR0912, C901
+        self,
+        posts: NodeIterator[Post] | None = None,
+        posts_limit: int = constants.POSTS_LIMIT_DEFAULT,
+        reels: NodeIterator[Post] | None = None,
+        reels_limit: int = constants.REELS_LIMIT_DEFAULT,
+        stories: NodeIterator[Story] | None = None,
+        tagged: NodeIterator[Post] | None = None,
+        tagged_limit: int = constants.TAGGED_LIMIT_DEFAULT,
+    ):
+        posts_limit = posts_limit or constants.POSTS_LIMIT_DEFAULT
+        reels_limit = reels_limit or constants.REELS_LIMIT_DEFAULT
+        tagged_limit = tagged_limit or constants.TAGGED_LIMIT_DEFAULT
+        LOG.info(f"Generating RSS feed for {self.profile.username} ({self.profile.userid})")
         feed = FeedGenerator()
         feed.id(self.url)
-        feed.title(self.username)
-        if self.biography:
-            feed.subtitle(self.biography)
-        feed.description(self.biography or "(no description)")
+        feed.title(self.profile.username)
+        if self.profile.biography:
+            feed.subtitle(self.profile.biography)
+        feed.description(self.profile.biography or "(no biography)")
         feed.link(href=self.url)
-        if self.icon_url:
-            feed.icon(self.icon_url)
-            feed.logo(self.icon_url)
+        if self.profile.profile_pic_url_no_iphone:
+            feed.icon(self.profile.profile_pic_url_no_iphone)
+            feed.logo(self.profile.profile_pic_url_no_iphone)
 
         entries: list[FeedEntry] = []
-        if not posts and self.private and not self.followed:
-            LOG.info(f"No posts or private profile: {self.username} ({self.user_id})")
+
+        if not posts and not reels and not stories and self.profile.is_private:
+            LOG.info(f"No posts or private profile: {self.profile.username} ({self.profile.userid})")
             entry = FeedEntry()
             entry.id(feed.id())
             entry.link(feed.link())
-            entry.author(name=self.full_name)
-            entry.title(f"{self.username} private: {self.private} followed: {self.followed}")
-            entry.content(f"{self.username} private: {self.private} followed: {self.followed}")
+            entry.author(name=self.profile.full_name)
+            content = (
+                f"{self.profile.username} private: {self.profile.is_private}"
+                f" followed: {self.profile.followed_by_viewer}"
+            )
+            entry.title(content)
+            entry.content(content)
             post_date = datetime.fromtimestamp(pendulum.now(TZ).timestamp(), tz=TZ)
             entry.published(post_date)
             entry.updated(post_date)
             entries.append(entry)
         else:
+            all_posts = []
             if posts:
-                LOG.info(f"Parsing {len(posts)} posts for {self.username} ({self.user_id})")
-            for post in posts:
-                main_node = post["node"]
+                LOG.info(f"Getting first {posts_limit} posts for {self.profile.username} ({self.profile.userid})")
+                posts_limited = list(islice(posts, posts_limit))
+                all_posts.extend(posts_limited)
+            if reels:
+                LOG.info(f"Getting first {reels_limit} reels for {self.profile.username} ({self.profile.userid})")
+                reels_limited = list(islice(reels, reels_limit))
+                all_posts.extend(reels_limited)
+            if tagged:
+                LOG.info(f"Getting first {tagged_limit} tagged posts for {self.profile.username} {self.profile.userid}")
+                tagged_limited = list(islice(tagged, tagged_limit))
+                all_posts.extend(tagged_limited)
+
+            LOG.info(f"Parsing results for {self.profile.username} ({self.profile.userid})")
+            for i, post in enumerate(all_posts):
+                LOG.info(f"Parsing result {i+1}/{len(all_posts)} for {self.profile.username} ({self.profile.userid})")
                 entry = FeedEntry()
-                post_link = f"{self.base_url}p/{main_node['shortcode']}/"
+                post_link = f"{self.base_url}p/{post.shortcode}/"
                 entry.id(post_link)
                 entry.link(href=post_link)
-                entry.author(name=self.full_name)
-                post_title = (
-                    (main_node.get("edge_media_to_caption", {}).get("edges", [{}]) or [{}])[0]
-                    .get("node", {})
-                    .get("text", "(no title)")
-                )
-                entry.title(post_title)
-                entry.source(url=post_link, title=post_title)
-                timestamp = main_node["taken_at_timestamp"]
-                post_date = datetime.fromtimestamp(timestamp, tz=TZ)
+                entry.author(name=post.owner_username)
+                caption = post.caption or "(no caption)"
+                caption_clean = caption.replace("\n", " ")
+                entry.title(caption_clean)
+                entry.source(url=post_link, title=caption_clean)
+                post_date = post.date_local
                 entry.published(post_date)
                 entry.updated(post_date)
-                children = main_node.get("edge_sidecar_to_children", {}).get("edges", [{}])
-                child_nodes = [_.get("node", {}) for _ in children]
-                nodes = [main_node, *child_nodes]
-                nodes = [_ for _ in nodes if _]
-                post_content = f"{self.username} <a href='{post_link}'>post</a><br>{post_title}"
-                for i, node in enumerate(nodes):
-                    if node.get("is_video"):
-                        url = node["video_url"]
-                        post_content += f'<br><br><video controls><source src="{url}" type="video/mp4"></video>'
-                    else:
-                        url = node["display_url"]
-                        post_content += f'<br><br><a href="{post_link}?img_index={i+1}"><img src="{url}"/></a>'
+                post_content = f"{self.profile.username} <a href='{post_link}'>post</a><br>{caption}"
+                if post.typename == "GraphSidecar":
+                    if post.mediacount > 0:
+                        sidecar_nodes = post.get_sidecar_nodes()
+                        for j, sidecar_node in enumerate(sidecar_nodes):
+                            sidecar_node: PostSidecarNode
+                            if sidecar_node.is_video:
+                                post_content += rss_video(sidecar_node.video_url)
+                            else:
+                                post_content += rss_image(sidecar_node.display_url, j, post_link)
+                elif post.typename == "GraphImage":
+                    post_content += rss_image(post.url, 1, post_link)
+                elif post.typename == "GraphVideo":
+                    post_content += rss_video(post.video_url)
+                else:
+                    LOG.error(f"Warning: {post} has unknown typename: {post.typename}")
 
                 entry.content(post_content, type="html")
                 entries.append(entry)
 
         if stories:
-            LOG.info(f"Parsing {len(stories)} stories for {self.username} ({self.user_id})")
+            LOG.info(f"Parsing stories for {self.profile.username} ({self.profile.userid})")
         for story in stories:
-            entry = FeedEntry()
-            story_link = f"{self.base_url}stories/{self.username}/{story['pk']}/"
-            entry.id(story_link)
-            entry.link(href=story_link)
-            entry.author(name=self.full_name)
-            title = f"{self.username} story"
-            entry.title(title)
-            entry.source(url=story_link, title=title)
-            post_content = f'{self.username} <a href="{story_link}">story</a><br>{title}'
-            timestamp = story["taken_at"]
-            post_date = datetime.fromtimestamp(timestamp, tz=TZ)
-            entry.published(post_date)
-            entry.updated(post_date)
-            video = story.get("video_versions", [{}])[0]
-            if video:
-                url = video["url"]
-                post_content += f'<br><br><video controls><source src="{url}" type="video/mp4"></video>'
-            else:
-                image = story.get("image_versions2", {}).get("candidates", [{}])[0]
-                if image:
-                    url = image["url"]
-                    post_content += f'<br><br><a href="{story_link}"><img src="{url}"/></a>'
+            story: Story
+            for story_item in story.get_items():
+                entry = FeedEntry()
+                story_link = f"{self.base_url}stories/{self.profile.username}/{story_item.mediaid}/"
+                entry.id(story_link)
+                entry.link(href=story_link)
+                entry.author(name=story.owner_username)
+                title = f"{self.profile.username} story"
+                entry.title(title)
+                entry.source(url=story_link, title=title)
+                post_content = f'{self.profile.username} <a href="{story_link}">story</a><br>{title}'
+                post_date = story_item.date_local
+                entry.published(post_date)
+                entry.updated(post_date)
+                if story_item.is_video:
+                    post_content += rss_video(story_item.video_url)
+                else:
+                    post_content += rss_image_story(story_item.url, story_link)
 
-            entry.content(post_content, type="html")
-            entries.append(entry)
+                entry.content(post_content, type="html")
+                entries.append(entry)
 
         entries.sort(key=lambda x: x.published(), reverse=False)
         feed.entry(entries)
@@ -243,7 +168,26 @@ class InstagramUserRSS:
             webbrowser.open(filename)
         return feed.atom_str(pretty=env.DEBUG)
 
-    def get_rss(self, posts=True, stories=True):
-        posts = self.fetch_posts() if posts else []
-        stories = self.fetch_stories() if stories else []
-        return self.generate_rss_feed(posts=posts, stories=stories)
+    def get_rss(  # noqa: PLR0913
+        self,
+        posts=True,
+        reels=True,
+        stories=True,
+        tagged=False,
+        posts_limit=constants.POSTS_LIMIT_DEFAULT,
+        reels_limit=constants.REELS_LIMIT_DEFAULT,
+        tagged_limit=constants.TAGGED_LIMIT_DEFAULT,
+    ):
+        posts = self.profile.get_posts() if posts else None
+        reels = self.profile.get_reels() if reels else None
+        stories = self.il.get_stories([self.profile.userid]) if stories else None
+        tagged = self.profile.get_tagged_posts() if tagged else None
+        return self.generate_rss_feed(
+            posts=posts,
+            posts_limit=posts_limit,
+            reels=reels,
+            reels_limit=reels_limit,
+            stories=stories,
+            tagged=tagged,
+            tagged_limit=tagged_limit,
+        )

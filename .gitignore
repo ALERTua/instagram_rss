@@ -12,3 +12,4 @@ wheels/
 .venv
 */feed.xml
 tryouts*.py
+instagram_rss/session.json

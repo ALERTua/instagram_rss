@@ -11,14 +11,23 @@ log_level = Log.Levels.DEBUG if VERBOSE else Log.Levels.INFO
 LOG = Log.get_logger(level=log_level)
 DEBUG = strtobool(os.getenv("DEBUG", "0"))
 
-SESSION_ID = os.getenv("SESSION_ID")
-assert SESSION_ID, "SESSION_ID environment variable not set"
+IG_USERNAME = os.getenv("IG_USERNAME")
+assert IG_USERNAME, "IG_USERNAME environment variable not set"
+IG_PASSWORD = os.getenv("IG_PASSWORD")
+assert IG_PASSWORD, "IG_PASSWORD environment variable not set"
+IG_OTP = os.getenv("IG_OTP")
+# assert IG_OTP, "IG_OTP environment variable not set"
 
-TIMEOUT = int(os.getenv("TIMEOUT", str(constants.TIMEOUT_DEFAULT)))
-IMPERSONATE = os.getenv("IMPERSONATE", "chrome")
-CALLS_MAX = int(os.getenv("CALLS_MAX", "1"))
-CALLS_PERIOD = int(os.getenv("CALLS_PERIOD", "5"))
-GET_RETRY_DELAY_SEC = int(os.getenv("GET_RETRY_DELAY_SEC", "15"))
+IG_SESSION_FILEPATH = os.getenv("IG_SESSION_FILEPATH", str(constants.IG_SESSION_FILEPATH_DEFAULT))
+assert IG_SESSION_FILEPATH, "IG_SESSION_FILEPATH environment variable not set"
 
-MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", "100"))  # Max number of items in cache
+POSTS = strtobool(os.getenv("POSTS", str(constants.POSTS_DEFAULT)))  # posts boolean default value
+POSTS_LIMIT = int(os.getenv("POSTS_LIMIT", constants.POSTS_LIMIT_DEFAULT))  # Max number of posts to fetch
+REELS = strtobool(os.getenv("REELS", str(constants.REELS_DEFAULT)))  # reels boolean default value
+REELS_LIMIT = int(os.getenv("REELS_LIMIT", constants.REELS_LIMIT_DEFAULT))  # Max number of reels to fetch
+STORIES = strtobool(os.getenv("STORIES", str(constants.STORIES_DEFAULT)))  # stories boolean default value
+TAGGED = strtobool(os.getenv("TAGGED", str(constants.TAGGED_DEFAULT)))  # tagged boolean default value
+TAGGED_LIMIT = int(os.getenv("TAGGED_LIMIT", constants.TAGGED_LIMIT_DEFAULT))  # Max number of tagged posts to fetch
+
+MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", "1000"))  # Max number of items in cache
 CACHE_DURATION = int(os.getenv("CACHE_DURATION", "3600"))  # Cache duration in seconds

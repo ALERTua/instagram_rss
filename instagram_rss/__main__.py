@@ -2,11 +2,16 @@ from __future__ import annotations
 import os
 import time
 from collections import OrderedDict
+from pathlib import Path
+
 from fastapi import FastAPI, status, Response, Query
 from fastapi.responses import RedirectResponse
+from instaloader import Instaloader, TwoFactorAuthRequiredException, Profile
 from pydantic import BaseModel
 from dataclasses import dataclass
 from global_logger import Log
+from pyotp import TOTP
+
 from instagram_rss import env
 from instagram_rss.instagram_user_rss import InstagramUserRSS
 
@@ -47,7 +52,6 @@ class LRUCache:
         self.cache[key] = CacheItem(data=value, timestamp=time.time())
 
 
-# Initialize cache with max size and duration
 cache = LRUCache(max_size=env.MAX_CACHE_SIZE, duration=env.CACHE_DURATION)
 
 
@@ -56,12 +60,17 @@ class HealthCheck(BaseModel):
 
 
 @app.get("/instagram/{query}")
-async def instagram_query(
+async def instagram_query(  # noqa: PLR0913
     query: str | int | None,
     user_id: str | None = Query(default=None),
     username: str | None = Query(default=None),
-    stories: bool | None = Query(default=True),
-    posts: bool | None = Query(default=True),
+    posts: bool | None = Query(default=env.POSTS),
+    posts_limit: int | None = Query(default=env.POSTS_LIMIT),
+    reels: bool | None = Query(default=env.REELS),
+    reels_limit: int | None = Query(default=env.REELS_LIMIT),
+    stories: bool | None = Query(default=env.STORIES),
+    tagged: bool | None = Query(default=env.TAGGED),
+    tagged_limit: int | None = Query(default=env.TAGGED_LIMIT),
 ):
     user_id = user_id if user_id else (query if str(query).isnumeric() else None)
     username = username if username else (query if not str(query).isnumeric() else None)
@@ -72,20 +81,58 @@ async def instagram_query(
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    cache_key = f"{query}-{user_id}-{username}-{posts}-{stories}"
+    cache_key = (
+        f"{query}-{user_id}-{username}-{posts}-{posts_limit}-{reels}-{reels_limit}{stories}-{tagged}-{tagged_limit}"
+    )
     cached_response = cache.get(cache_key)
     if cached_response:
         return Response(content=cached_response, media_type="application/xml", status_code=status.HTTP_200_OK)
 
-    instagram_rss = InstagramUserRSS(session_id=env.SESSION_ID, username=username, user_id=user_id, timeout=env.TIMEOUT)
-    if not user_id:
-        user_id = instagram_rss.user_id
-        return RedirectResponse(
-            url=f"/instagram/{user_id}?posts={posts}&stories={stories}",
-            status_code=status.HTTP_302_FOUND,
-        )
+    il = Instaloader()
+    logged_in = False
+    if Path(env.IG_SESSION_FILEPATH).exists():
+        il.load_session_from_file(env.IG_USERNAME, env.IG_SESSION_FILEPATH)
+        logged_in = il.test_login()
 
-    rss_content = instagram_rss.get_rss(posts=posts, stories=stories)
+    if not logged_in:
+        try:
+            il.login(env.IG_USERNAME, env.IG_PASSWORD)
+        except TwoFactorAuthRequiredException:  # TODO: check IG_OTP is set
+            totp = TOTP(env.IG_OTP)
+            otp = totp.now()
+            il.two_factor_login(otp)
+
+        logged_in = True
+        il.save_session_to_file(env.IG_SESSION_FILEPATH)
+
+    if not logged_in:
+        LOG.error("Login failed")
+        return Response(content="Login failed", status_code=status.HTTP_401_UNAUTHORIZED)
+
+    if user_id:
+        profile = Profile.from_id(il.context, user_id)
+    else:
+        profile = Profile.from_username(il.context, username)
+        user_id = profile.userid
+        url = (
+            f"/instagram/{user_id}"
+            f"?posts={posts}&posts_limit={posts_limit}"
+            f"&reels={reels}&reels_limit={reels_limit}"
+            f"&stories={stories}"
+            f"&tagged={tagged}&tagged_limit={tagged_limit}"
+        )
+        return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
+
+    rss = InstagramUserRSS(profile=profile, il=il)
+    rss_content = rss.get_rss(
+        posts=posts,
+        posts_limit=posts_limit,
+        reels=reels,
+        reels_limit=reels_limit,
+        stories=stories,
+        tagged=tagged,
+        tagged_limit=tagged_limit,
+    )
     cache.set(cache_key, rss_content)
     return Response(content=rss_content, media_type="application/xml", status_code=status.HTTP_200_OK)
 

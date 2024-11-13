@@ -3,11 +3,23 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS production
 LABEL maintainer="ALERT <alexey.rubasheff@gmail.com>"
 
 ENV PORT=8000
-ENV SESSION_ID=""
-ENV TIMEOUT=60
+ENV IG_USERNAME=""
+ENV IG_PASSWORD=""
+ENV IG_OTP=""
+ENV IG_SESSION_FILEPATH="/data/session.json"
+ENV POSTS="True"
+ENV POSTS_LIMIT=5
+ENV REELS="True"
+ENV REELS_LIMIT=5
+ENV STORIES="True"
+ENV TAGGED="False"
+ENV TAGGED_LIMIT=5
+ENV MAX_CACHE_SIZE=1000
+ENV CACHE_DURATION=3600
 ENV VERBOSE=0
 
 EXPOSE $PORT
+VOLUME ["/data"]
 
 ENV \
     # uv

@@ -11,33 +11,25 @@ FastAPI RSS Feed Generator for an Instagram User
 .env:
 ```
 PORT=8000
-
-# "sessionid" cookie
-SESSION_ID=123456783%1AIU7GABCDqhAB12%1A0%3ABYeDD33-3hdc3U2RlIyeS3mzfH1GDlrCST8GXqy_3g
-
-# GET requests timeout
-TIMEOUT=60
-
-# impersonate this browser
-IMPERSONATE=chrome
-
-# max GET calls
-CALLS_MAX=1
-
-# in this period in seconds
-CALLS_PERIOD=5
-
-# retry failed GET calls after this delay in seconds
-GET_RETRY_DELAY_SEC=15
+IG_USERNAME=""  # Instagram login username (not email)
+IG_PASSWORD=""  # Instagram Password
+IG_OTP=""  # Instagram TOTP
+POSTS="True"  # Include Posts Default Value
+POSTS_LIMIT=5  # Posts Limit Default Value
+REELS="True"  # Include Reels Default Value
+REELS_LIMIT=5  # Reels Limit Default Value
+STORIES="True"  # Include Stories Default Value
+TAGGED="False"  # Include Tagged Posts Default Value
+TAGGED_LIMIT=5  # Tagged Posts Limit Default Value
 
 # query cache duration in seconds
 CACHE_DURATION=3600
 
 # maximum responses cache quantity
-MAX_CACHE_SIZE=100
+MAX_CACHE_SIZE=1000
 
 VERBOSE=0
 ```
 serves:
-- /instagram/{userid_or_username}?posts=True&stories=True
+- /instagram/{user_id}?posts={posts}&posts_limit={posts_limit}&reels={reels}&reels_limit={reels_limit}&stories={stories}&tagged={tagged}&tagged_limit={tagged_limit}
 - /health
