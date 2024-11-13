@@ -1,9 +1,30 @@
+import re
 from ratelimit import limits, sleep_and_retry, RateLimitException
 from curl_cffi import requests
 from instagram_rss import env
 from global_logger import Log
 
 LOG = Log.get_logger()
+_POST_QUERYHASH = None
+POST_QUERYHASH_DEFAULT = "58b6785bea111c67129decbe6a448951"
+
+
+def post_queryhash():
+    global _POST_QUERYHASH  # noqa: PLW0603
+    if _POST_QUERYHASH:
+        return _POST_QUERYHASH
+
+    LOG.debug("Fetching post queryhash")
+    url = "https://www.instagram.com/static/bundles/es6/Consumer.js/260e382f5182.js"
+
+    response = requests.get(url)
+    html_body = response.text
+
+    # noinspection RegExpRedundantEscape
+    match = re.search(r'l\.pagination\},queryId:"(.*?)"', html_body, re.IGNORECASE | re.DOTALL)
+    if match:
+        _POST_QUERYHASH = match.group(1)
+    return _POST_QUERYHASH or POST_QUERYHASH_DEFAULT
 
 
 @sleep_and_retry

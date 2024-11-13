@@ -115,7 +115,7 @@ class InstagramUserRSS:
 
     def fetch_posts(self):
         LOG.info(f"Fetching posts for {self.username} ({self.user_id})")
-        params = {"query_hash": constants.QUERY_HASH, "variables": {"id": self.user_id, "first": 10}}
+        params = {"query_hash": tools.post_queryhash(), "variables": {"id": self.user_id, "first": 50}}
         headers = {"Accept": "application/json; charset=utf-8"}
         url = f"{self.base_url}graphql/query"
         response = requests.get(url, headers=headers, params=params, timeout=env.TIMEOUT, impersonate=env.IMPERSONATE)
