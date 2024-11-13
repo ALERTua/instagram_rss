@@ -3,6 +3,7 @@ from pprint import pformat
 import pendulum
 from datetime import datetime
 
+from curl_cffi import requests
 from feedgen.entry import FeedEntry
 from feedgen.feed import FeedGenerator
 from instagram_rss.exceptions import UserNotFoundError
@@ -117,7 +118,14 @@ class InstagramUserRSS:
         params = {"query_hash": constants.QUERY_HASH, "variables": {"id": self.user_id, "first": 10}}
         headers = {"Accept": "application/json; charset=utf-8"}
         url = f"{self.base_url}graphql/query"
-        response = tools.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params, timeout=env.TIMEOUT, impersonate=env.IMPERSONATE)
+        if response.status_code == 401:  # noqa: PLR2004
+            LOG.error(
+                f"Failed to get posts for {self.username} ({self.user_id}):"
+                f" {response.status_code} {response.json().get("message")}",
+            )
+            return []
+
         assert response.headers.get("content-type", "").startswith("application/json"), "Expected JSON response"
         return (
             (response.json().get("data", {}).get("user", {}) or {})

@@ -24,7 +24,10 @@ def get(*args, **kwargs) -> requests.Response:
         raise RateLimitException(msg, sleep_time)
 
     if (status := response.status_code) in (401, *allowed_codes):
-        msg = f"Request status {status} for {args}. Retrying in {sleep_time} seconds"
+        reason = response.reason
+        if not reason and response.json():
+            reason = response.json().get("message")
+        msg = f"Request status {status}:{reason} for {args}. Retrying in {sleep_time} seconds"
         LOG.error(msg)
         raise RateLimitException(msg, sleep_time)
 
