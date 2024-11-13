@@ -88,7 +88,7 @@ async def instagram_query(  # noqa: PLR0913
     if cached_response:
         return Response(content=cached_response, media_type="application/xml", status_code=status.HTTP_200_OK)
 
-    il = Instaloader()
+    il = Instaloader()  # https://instaloader.github.io/as-module.html
     logged_in = False
     if Path(env.IG_SESSION_FILEPATH).exists():
         il.load_session_from_file(env.IG_USERNAME, env.IG_SESSION_FILEPATH)

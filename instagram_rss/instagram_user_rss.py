@@ -134,28 +134,28 @@ class InstagramUserRSS:
 
         if stories:
             LOG.info(f"Parsing stories for {self.profile.username} ({self.profile.userid})")
-        for story in stories:
-            story: Story
-            for story_item in story.get_items():
-                entry = FeedEntry()
-                story_link = f"{self.base_url}stories/{self.profile.username}/{story_item.mediaid}/"
-                entry.id(story_link)
-                entry.link(href=story_link)
-                entry.author(name=story.owner_username)
-                title = f"{self.profile.username} story"
-                entry.title(title)
-                entry.source(url=story_link, title=title)
-                post_content = f'{self.profile.username} <a href="{story_link}">story</a><br>{title}'
-                post_date = story_item.date_local
-                entry.published(post_date)
-                entry.updated(post_date)
-                if story_item.is_video:
-                    post_content += rss_video(story_item.video_url)
-                else:
-                    post_content += rss_image_story(story_item.url, story_link)
+            for story in stories:
+                story: Story
+                for story_item in story.get_items():
+                    entry = FeedEntry()
+                    story_link = f"{self.base_url}stories/{self.profile.username}/{story_item.mediaid}/"
+                    entry.id(story_link)
+                    entry.link(href=story_link)
+                    entry.author(name=story.owner_username)
+                    title = f"{self.profile.username} story"
+                    entry.title(title)
+                    entry.source(url=story_link, title=title)
+                    post_content = f'{self.profile.username} <a href="{story_link}">story</a><br>{title}'
+                    post_date = story_item.date_local
+                    entry.published(post_date)
+                    entry.updated(post_date)
+                    if story_item.is_video:
+                        post_content += rss_video(story_item.video_url)
+                    else:
+                        post_content += rss_image_story(story_item.url, story_link)
 
-                entry.content(post_content, type="html")
-                entries.append(entry)
+                    entry.content(post_content, type="html")
+                    entries.append(entry)
 
         entries.sort(key=lambda x: x.published(), reverse=False)
         feed.entry(entries)
