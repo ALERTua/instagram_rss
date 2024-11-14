@@ -86,10 +86,13 @@ async def instagram_query(  # noqa: PLR0913
         profile = Profile.from_username(il.context, username)
         url = (
             f"/instagram/{profile.userid}"
-            f"?posts={posts}&posts_limit=0"
-            f"&reels={reels}&reels_limit=0"
-            f"&stories=False"
-            f"&tagged={tagged}&tagged_limit=0"
+            f"?posts=0"
+            f"&reels=0"
+            f"&tagged=0"
+            f"&stories=0"
+            f"&posts_limit={posts_limit}"
+            f"&reels_limit={reels_limit}"
+            f"&tagged_limit={tagged_limit}"
         )
         return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
