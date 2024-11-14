@@ -117,7 +117,7 @@ async def instagram_query(  # noqa: PLR0913
         tagged=tagged,
         tagged_limit=tagged_limit,
     )
-    await set_cached_item(cache_key, rss_content)
+    await set_cached_item(cache_key, rss_content.decode() if isinstance(rss_content, bytes) else rss_content)
     return Response(content=rss_content, media_type="application/xml", status_code=status.HTTP_200_OK)
 
 
