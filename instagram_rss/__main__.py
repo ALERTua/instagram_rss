@@ -1,4 +1,5 @@
 from __future__ import annotations
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, status, Response, Query
@@ -17,6 +18,10 @@ app = FastAPI()
 cache = Cache.from_url(env.REDIS_URL or "memory://")
 cache.ttl = env.CACHE_DURATION
 
+instaloader_instance = None
+last_login_check_time = 0
+LOGIN_CHECK_INTERVAL = 60 * 60
+
 
 class HealthCheck(BaseModel):
     status: str = "OK"
@@ -31,6 +36,35 @@ async def get_cached_item(key: str) -> str | None:
 
 async def set_cached_item(key: str, value: str):
     await cache.set(key, value)
+
+
+def get_instaloader() -> Instaloader:
+    """Get a singleton instance of Instaloader with periodic login validation."""
+    global instaloader_instance, last_login_check_time  # noqa: PLW0603
+
+    if instaloader_instance is None:
+        instaloader_instance = Instaloader()
+
+    # Only revalidate login if interval has expired
+    current_time = time.time()
+    if current_time - last_login_check_time > LOGIN_CHECK_INTERVAL:
+        logged_in = False
+        if Path(env.IG_SESSION_FILEPATH).exists():
+            instaloader_instance.load_session_from_file(env.IG_USERNAME, env.IG_SESSION_FILEPATH)
+            logged_in = instaloader_instance.test_login()
+
+        if not logged_in:
+            try:
+                instaloader_instance.login(env.IG_USERNAME, env.IG_PASSWORD)
+            except TwoFactorAuthRequiredException:
+                totp = TOTP(env.IG_OTP)
+                otp = totp.now()
+                instaloader_instance.two_factor_login(otp)
+            instaloader_instance.save_session_to_file(env.IG_SESSION_FILEPATH)
+
+        last_login_check_time = current_time  # Update the last login check time
+
+    return instaloader_instance
 
 
 @app.get("/instagram/{query}")
@@ -60,25 +94,7 @@ async def instagram_query(  # noqa: PLR0913
     if cached_response:
         return Response(content=cached_response, media_type="application/xml", status_code=status.HTTP_200_OK)
 
-    il = Instaloader()
-    logged_in = False
-    if Path(env.IG_SESSION_FILEPATH).exists():
-        il.load_session_from_file(env.IG_USERNAME, env.IG_SESSION_FILEPATH)
-        logged_in = il.test_login()
-
-    if not logged_in:
-        try:
-            il.login(env.IG_USERNAME, env.IG_PASSWORD)
-        except TwoFactorAuthRequiredException:
-            totp = TOTP(env.IG_OTP)
-            otp = totp.now()
-            il.two_factor_login(otp)
-        logged_in = True
-        il.save_session_to_file(env.IG_SESSION_FILEPATH)
-
-    if not logged_in:
-        LOG.error("Login failed")
-        return Response(content="Login failed", status_code=status.HTTP_401_UNAUTHORIZED)
+    il = get_instaloader()  # Use the cached Instaloader instance
 
     if user_id:
         profile = Profile.from_id(il.context, user_id)
