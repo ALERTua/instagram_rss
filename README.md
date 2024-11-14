@@ -14,6 +14,9 @@ PORT=8000
 IG_USERNAME=""  # Instagram login username (not email)
 IG_PASSWORD=""  # Instagram Password
 IG_OTP=""  # Instagram TOTP
+
+REDIS_URL=""  # Optional redis://<host>:<port>
+
 POSTS="True"  # Include Posts Default Value
 POSTS_LIMIT=5  # Posts Limit Default Value
 REELS="True"  # Include Reels Default Value

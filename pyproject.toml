@@ -5,6 +5,7 @@ description = "FastAPI RSS Feed Generator for an Instagram User"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiocache[redis]>=0.12.3",
     "curl-cffi>=0.7.3",
     "fastapi>=0.115.4",
     "feedgen>=1.0.0",

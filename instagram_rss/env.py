@@ -21,6 +21,9 @@ IG_OTP = os.getenv("IG_OTP")
 IG_SESSION_FILEPATH = os.getenv("IG_SESSION_FILEPATH", str(constants.IG_SESSION_FILEPATH_DEFAULT))
 assert IG_SESSION_FILEPATH, "IG_SESSION_FILEPATH environment variable not set"
 
+REDIS_URL = os.getenv("REDIS_URL", None)
+PORT = os.getenv("PORT", "8000")
+
 POSTS = strtobool(os.getenv("POSTS", str(constants.POSTS_DEFAULT)))  # posts boolean default value
 POSTS_LIMIT = int(os.getenv("POSTS_LIMIT", constants.POSTS_LIMIT_DEFAULT))  # Max number of posts to fetch
 REELS = strtobool(os.getenv("REELS", str(constants.REELS_DEFAULT)))  # reels boolean default value
