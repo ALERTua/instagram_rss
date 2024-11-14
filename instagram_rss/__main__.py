@@ -9,25 +9,16 @@ from dataclasses import dataclass
 from global_logger import Log
 from pyotp import TOTP
 from aiocache import Cache
-from urllib.parse import urlparse
 from instagram_rss import env
 from instagram_rss.instagram_user_rss import InstagramUserRSS
 
 LOG = Log.get_logger()
 app = FastAPI()
 
-# Configure cache: Use Redis if `env.REDIS_URL` is defined, otherwise use in-memory cache
-if env.REDIS_URL:
-    redis_url = urlparse(env.REDIS_URL)
-    cache = Cache(
-        Cache.REDIS,
-        endpoint=redis_url.hostname,
-        port=redis_url.port,
-        ttl=env.CACHE_DURATION,
-        # max_size=env.MAX_CACHE_SIZE  # noqa: ERA001
-    )
-else:
-    cache = Cache(Cache.MEMORY, ttl=env.CACHE_DURATION)  # , max_size=env.MAX_CACHE_SIZE)
+cache = Cache.from_url(env.REDIS_URL or "memory://")
+cache.ttl = env.CACHE_DURATION
+
+# max_size=env.MAX_CACHE_SIZE  # noqa: ERA001
 
 
 @dataclass
