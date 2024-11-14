@@ -23,11 +23,11 @@ if env.REDIS_URL:
         Cache.REDIS,
         endpoint=redis_url.hostname,
         port=redis_url.port,
-        # ttl=env.CACHE_DURATION,  # noqa: ERA001
+        ttl=env.CACHE_DURATION,
         # max_size=env.MAX_CACHE_SIZE  # noqa: ERA001
     )
 else:
-    cache = Cache(Cache.MEMORY)  # , ttl=env.CACHE_DURATION, max_size=env.MAX_CACHE_SIZE)
+    cache = Cache(Cache.MEMORY, ttl=env.CACHE_DURATION)  # , max_size=env.MAX_CACHE_SIZE)
 
 
 @dataclass
