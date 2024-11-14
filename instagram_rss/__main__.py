@@ -5,7 +5,6 @@ from fastapi import FastAPI, status, Response, Query
 from fastapi.responses import RedirectResponse
 from instaloader import Instaloader, TwoFactorAuthRequiredException, Profile
 from pydantic import BaseModel
-from dataclasses import dataclass
 from global_logger import Log
 from pyotp import TOTP
 from aiocache import Cache
@@ -18,10 +17,7 @@ app = FastAPI()
 cache = Cache.from_url(env.REDIS_URL or "memory://")
 cache.ttl = env.CACHE_DURATION
 
-# max_size=env.MAX_CACHE_SIZE  # noqa: ERA001
 
-
-@dataclass
 class HealthCheck(BaseModel):
     status: str = "OK"
 

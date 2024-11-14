@@ -32,5 +32,4 @@ STORIES = strtobool(os.getenv("STORIES", str(constants.STORIES_DEFAULT)))  # sto
 TAGGED = strtobool(os.getenv("TAGGED", str(constants.TAGGED_DEFAULT)))  # tagged boolean default value
 TAGGED_LIMIT = int(os.getenv("TAGGED_LIMIT", constants.TAGGED_LIMIT_DEFAULT))  # Max number of tagged posts to fetch
 
-MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", "1000"))  # Max number of items in cache
 CACHE_DURATION = int(os.getenv("CACHE_DURATION", "3600"))  # Cache duration in seconds

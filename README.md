@@ -28,9 +28,6 @@ TAGGED_LIMIT=5  # Tagged Posts Limit Default Value
 # query cache duration in seconds
 CACHE_DURATION=3600
 
-# maximum responses cache quantity
-MAX_CACHE_SIZE=1000
-
 VERBOSE=0
 ```
 serves:
