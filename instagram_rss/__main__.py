@@ -29,7 +29,12 @@ class HealthCheck(BaseModel):
 
 
 async def get_cached_item(key: str) -> str | None:
-    cached_data = await cache.get(key)
+    try:
+        cached_data = await cache.get(key)
+    except Exception:
+        LOG.exception("Error retrieving cached item")
+        cached_data = None
+
     if cached_data:
         LOG.debug(f"Returning cached response for {key}")
     return cached_data
