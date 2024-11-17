@@ -17,7 +17,7 @@ app = FastAPI()
 
 cache = Cache.from_url(env.REDIS_URL or "memory://")
 cache.ttl = env.CACHE_DURATION
-cache.timeout = 15
+cache.timeout = 30
 
 instaloader_instance = None
 last_login_check_time = 0
