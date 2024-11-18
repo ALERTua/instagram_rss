@@ -41,7 +41,12 @@ async def get_cached_item(key: str) -> str | None:
 
 
 async def set_cached_item(key: str, value: str):
-    await cache.set(key, value)
+    try:
+        await cache.set(key, value)
+    except Exception:
+        LOG.exception("Error setting cache for item")
+
+    LOG.debug(f"Set cache for {key}")
 
 
 def get_instaloader() -> Instaloader:
