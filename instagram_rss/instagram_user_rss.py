@@ -17,11 +17,11 @@ TZ = pendulum.tz.local_timezone()
 
 def rss_image(url, i, post_link):
     link = f"{post_link}?img_index={i+1}"
-    return f'<br><br><img src="{url}"/><a href="{link}">{link}</a><br>'
+    return f'<br><br><img src="{url}"/><a href="{link}">{link}</a>'
 
 
 def rss_image_story(url, story_link):
-    return f'<br><br><img src="{url}"/><a href="{story_link}">{story_link}</a><br>'
+    return f'<br><br><img src="{url}"/><a href="{story_link}">{story_link}</a>'
 
 
 def rss_video(url):
