@@ -18,7 +18,7 @@ app = FastAPI()
 
 cache = Cache.from_url(env.REDIS_URL or "memory://")
 cache.ttl = env.CACHE_DURATION
-cache.timeout = 30
+cache.timeout = 15
 
 instaloader_instance = None
 last_login_check_time = 0
@@ -32,8 +32,8 @@ class HealthCheck(BaseModel):
 async def get_cached_item(key: str) -> str | None:
     try:
         cached_data = await cache.get(key)
-    except TimeoutError:
-        LOG.exception("Timeout while retrieving cached item")
+    except TimeoutError as e:
+        LOG.error(f"{type(e)} while retrieving cached item")  # noqa: TRY400
         cached_data = None
 
     if cached_data:
@@ -44,8 +44,8 @@ async def get_cached_item(key: str) -> str | None:
 async def set_cached_item(key: str, value: str):
     try:
         await cache.set(key, value)
-    except TimeoutError:
-        LOG.exception("Timeout while setting cached item.")
+    except TimeoutError as e:
+        LOG.error(f"{type(e)} while setting cached item.")  # noqa: TRY400
         return
 
     LOG.debug(f"Set cache for {key}")
