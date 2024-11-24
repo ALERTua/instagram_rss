@@ -8,6 +8,7 @@ from feedgen.feed import FeedGenerator
 from instagram_rss import env, constants
 from global_logger import Log
 
+
 if TYPE_CHECKING:
     from instaloader import Profile, NodeIterator, Post, Story, PostSidecarNode, Instaloader
 

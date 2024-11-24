@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from global_logger import Log
 from pyotp import TOTP
 from aiocache import Cache
+from asyncio.exceptions import TimeoutError
 from instagram_rss import env
 from instagram_rss.instagram_user_rss import InstagramUserRSS
 
@@ -31,8 +32,8 @@ class HealthCheck(BaseModel):
 async def get_cached_item(key: str) -> str | None:
     try:
         cached_data = await cache.get(key)
-    except Exception:
-        LOG.exception("Error retrieving cached item")
+    except TimeoutError:
+        LOG.exception("Timeout while retrieving cached item")
         cached_data = None
 
     if cached_data:
@@ -43,8 +44,9 @@ async def get_cached_item(key: str) -> str | None:
 async def set_cached_item(key: str, value: str):
     try:
         await cache.set(key, value)
-    except Exception:
-        LOG.exception("Error setting cache for item")
+    except TimeoutError:
+        LOG.exception("Timeout while setting cached item.")
+        return
 
     LOG.debug(f"Set cache for {key}")
 
