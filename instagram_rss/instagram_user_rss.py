@@ -8,17 +8,17 @@ from feedgen.feed import FeedGenerator
 from instagram_rss import env, constants
 from global_logger import Log
 
-
 if TYPE_CHECKING:
-    from instaloader import Profile, NodeIterator, Post, Story, PostSidecarNode, Instaloader
+    from instaloader import Profile, NodeIterator, Post, Story, PostSidecarNode, Instaloader, StoryItem
 
 LOG = Log.get_logger()
 TZ = pendulum.tz.local_timezone()
+BASE_URL = "https://www.instagram.com/"
 
 
 def rss_image(url, i, post_link):
-    link = f"{post_link}?img_index={i+1}"
-    return f'<br><br><img src="{url}"/><a href="{link}">{link}</a>'
+    _link = f"{post_link}?img_index={i+1}"
+    return f'<br><br><img src="{url}"/><a href="{_link}">{_link}</a>'
 
 
 def rss_image_story(url, story_link):
@@ -29,12 +29,20 @@ def rss_video(url):
     return f'<br><br><video controls><source src="{url}" type="video/mp4"></video>'
 
 
+def profile_link(username):
+    return f'<a href="{BASE_URL}{username}">@{username.lstrip('@')}</a>'
+
+
+def link(url, text):
+    return f'<a href="{url}">{text}</a>'
+
+
 class InstagramUserRSS:
     def __init__(self, profile: Profile, il: Instaloader):
         assert profile, "profile must be provided"
         self.profile: Profile = profile
         self.il: Instaloader = il
-        self.base_url = "https://www.instagram.com/"
+        self.base_url = BASE_URL
 
     @property
     def url(self):
@@ -106,14 +114,23 @@ class InstagramUserRSS:
                 entry.id(post_link)
                 entry.link(href=post_link)
                 entry.author(name=post.owner_username)
+                post_type = "post" if post.owner_username == self.profile.username else "tagged post"
                 caption = post.caption or "(no caption)"
                 caption_clean = caption.replace("\n", " ")
-                entry.title(caption_clean)
+                if len(caption_clean) > 200:  # noqa: PLR2004
+                    caption_clean = caption_clean[:100] + "..."
+                entry_caption = f"{self.profile.username} {post_type}: {caption_clean}"
+                entry.title(entry_caption)
                 entry.source(url=post_link, title=caption_clean)
                 post_date = post.date_local
                 entry.published(post_date)
                 entry.updated(post_date)
-                post_content = f"{self.profile.username} <a href='{post_link}'>post</a><br>{caption}"
+                post_content = f"{profile_link(self.profile.username)} {link(post_link, post_type)}<br>{caption}"
+
+                if post.tagged_users:
+                    tagged_users_str = [profile_link(_) for _ in post.tagged_users]
+                    post_content += "<br>" + "<br>".join(tagged_users_str)
+
                 if post.typename == "GraphSidecar":
                     if post.mediacount > 0:
                         sidecar_nodes = post.get_sidecar_nodes()
@@ -138,15 +155,17 @@ class InstagramUserRSS:
             for story in stories:
                 story: Story
                 for story_item in story.get_items():
+                    story_item: StoryItem
+
                     entry = FeedEntry()
                     story_link = f"{self.base_url}stories/{self.profile.username}/{story_item.mediaid}/"
                     entry.id(story_link)
                     entry.link(href=story_link)
                     entry.author(name=story.owner_username)
-                    title = f"{self.profile.username} story"
+                    title = f"{story.owner_username} story"
                     entry.title(title)
                     entry.source(url=story_link, title=title)
-                    post_content = f'{self.profile.username} <a href="{story_link}">story</a><br>{title}'
+                    post_content = f'{profile_link(story.owner_username)} {link(story_link, 'story')}"<br>{title}'
                     post_date = story_item.date_local
                     entry.published(post_date)
                     entry.updated(post_date)
