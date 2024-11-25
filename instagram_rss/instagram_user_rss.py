@@ -165,7 +165,7 @@ class InstagramUserRSS:
                     title = f"{story.owner_username} story"
                     entry.title(title)
                     entry.source(url=story_link, title=title)
-                    post_content = f'{profile_link(story.owner_username)} {link(story_link, 'story')}"<br>{title}'
+                    post_content = f'{profile_link(story.owner_username)} {link(story_link, "story")}<br>{title}'
                     post_date = story_item.date_local
                     entry.published(post_date)
                     entry.updated(post_date)
