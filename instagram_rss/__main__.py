@@ -56,7 +56,7 @@ def get_instaloader() -> Instaloader:
     global instaloader_instance, last_login_check_time  # noqa: PLW0603
 
     if instaloader_instance is None:
-        instaloader_instance = Instaloader()
+        instaloader_instance = Instaloader(max_connection_attempts=5)
 
     # Only revalidate login if interval has expired
     current_time = time.time()
