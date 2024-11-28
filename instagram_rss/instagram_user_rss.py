@@ -114,7 +114,11 @@ class InstagramUserRSS:
                 entry.id(post_link)
                 entry.link(href=post_link)
                 entry.author(name=post.owner_username)
-                post_type = "post" if post.owner_username == self.profile.username else "tagged post"
+                if post.owner_username == self.profile.username:
+                    post_type = "post"
+                else:
+                    post_type = f"tagged post by {profile_link(post.owner_username)}"
+
                 caption = post.caption or "(no caption)"
                 caption_clean = caption.replace("\n", " ")
                 if len(caption_clean) > 200:  # noqa: PLR2004
