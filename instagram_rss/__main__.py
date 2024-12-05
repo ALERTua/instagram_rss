@@ -36,10 +36,12 @@ class HealthCheck(BaseModel):
 async def get_cached_item(key: str) -> str | None:
     try:
         cached_data = await cache.get(key)
+        LOG.debug(f"Returning cached response for {key}")
     except TimeoutError as e:
         LOG.error(f"{type(e)} while retrieving cached item")  # noqa: TRY400
         try:
             cached_data = await memory_cache.get(key)
+            LOG.debug(f"Returning cached response for {key} from memory")
         except TimeoutError as e:
             LOG.error(f"{type(e)} while retrieving cached item frrom memory")  # noqa: TRY400
             cached_data = None
@@ -54,10 +56,12 @@ async def get_cached_item(key: str) -> str | None:
 async def set_cached_item(key: str, value: str):
     try:
         await cache.set(key, value)
+        LOG.debug(f"Cached {key}")
     except TimeoutError as e:
         LOG.error(f"{type(e)} while caching item.")  # noqa: TRY400
         try:
             await memory_cache.set(key, value)
+            LOG.debug(f"Cached {key} to memory")
         except TimeoutError as e:
             LOG.error(f"{type(e)} while caching item to memory.")  # noqa: TRY400
             return
