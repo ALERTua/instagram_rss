@@ -116,7 +116,7 @@ async def instagram_query(  # noqa: PLR0913
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
-    cache_key = f"{user_id}-{username}-{posts}-{posts_limit}-{reels}-{reels_limit}{stories}-{tagged}-{tagged_limit}"
+    cache_key = f"{user_id}-{username}-{posts}-{posts_limit}-{reels}-{reels_limit}-{stories}-{tagged}-{tagged_limit}"
     cached_response = await get_cached_item(cache_key)
     if cached_response:
         return Response(content=cached_response, media_type="application/xml", status_code=status.HTTP_200_OK)
