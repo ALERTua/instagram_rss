@@ -76,7 +76,7 @@ class InstagramUserRSS:
         entries: list[FeedEntry] = []
 
         if not posts and not reels and not stories and self.profile.is_private:
-            LOG.info(f"No posts or private profile: {self.profile.username} ({self.profile.userid})")
+            LOG.info(f"No posts or private profile: {self.profile.username} ({self.profile.userid}) @ {self.url}")
             entry = FeedEntry()
             entry.id(feed.id())
             entry.link(feed.link())
@@ -108,9 +108,12 @@ class InstagramUserRSS:
 
             LOG.info(f"Parsing results for {self.profile.username} ({self.profile.userid})")
             for i, post in enumerate(all_posts):
-                LOG.info(f"Parsing result {i+1}/{len(all_posts)} for {self.profile.username} ({self.profile.userid})")
                 entry = FeedEntry()
                 post_link = f"{self.base_url}p/{post.shortcode}/"
+                LOG.info(
+                    f"Parsing result {i+1}/{len(all_posts)} for {self.profile.username} ({self.profile.userid})"
+                    f" @ {post_link}",
+                )
                 entry.id(post_link)
                 entry.link(href=post_link)
                 entry.author(name=post.owner_username)
