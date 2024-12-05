@@ -106,7 +106,7 @@ class InstagramUserRSS:
                 tagged_limited = list(islice(tagged, tagged_limit))
                 all_posts.extend(tagged_limited)
 
-            LOG.info(f"Parsing results for {self.profile.username} ({self.profile.userid})")
+            LOG.info(f"Parsing results for {self.profile.username} ({self.profile.userid}) @ {self.url}")
             for i, post in enumerate(all_posts):
                 entry = FeedEntry()
                 post_link = f"{self.base_url}p/{post.shortcode}/"
