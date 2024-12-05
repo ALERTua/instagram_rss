@@ -20,6 +20,10 @@ cache = Cache.from_url(env.REDIS_URL or "memory://")
 cache.ttl = env.CACHE_DURATION
 cache.timeout = 15
 
+memory_cache = Cache.from_url("memory://")
+memory_cache.ttl = env.CACHE_DURATION
+memory_cache.timeout = 15
+
 instaloader_instance = None
 last_login_check_time = 0
 LOGIN_CHECK_INTERVAL = 60 * 60
@@ -34,10 +38,16 @@ async def get_cached_item(key: str) -> str | None:
         cached_data = await cache.get(key)
     except TimeoutError as e:
         LOG.error(f"{type(e)} while retrieving cached item")  # noqa: TRY400
-        cached_data = None
+        try:
+            cached_data = await memory_cache.get(key)
+        except TimeoutError as e:
+            LOG.error(f"{type(e)} while retrieving cached item frrom memory")  # noqa: TRY400
+            cached_data = None
 
     if cached_data:
         LOG.debug(f"Returning cached response for {key}")
+    else:
+        LOG.debug(f"No cache found for {key}")
     return cached_data
 
 
@@ -45,10 +55,14 @@ async def set_cached_item(key: str, value: str):
     try:
         await cache.set(key, value)
     except TimeoutError as e:
-        LOG.error(f"{type(e)} while setting cached item.")  # noqa: TRY400
-        return
+        LOG.error(f"{type(e)} while caching item.")  # noqa: TRY400
+        try:
+            await memory_cache.set(key, value)
+        except TimeoutError as e:
+            LOG.error(f"{type(e)} while caching item to memory.")  # noqa: TRY400
+            return
 
-    LOG.debug(f"Set cache for {key}")
+    LOG.debug(f"Cached {key}")
 
 
 def get_instaloader() -> Instaloader:
