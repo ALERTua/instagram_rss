@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Instagram RSS Feed URL
 // @namespace    https://www.instagram.com
-// @version      1.0
+// @version      1.1
 // @description  Add Instagram RSS Feed URL Button
 // @author       Alexey ALERT Rubasheff
 // @homepageURL  https://github.com/ALERTua/instagram_rss/blob/main/userscript/userscript.user.js
@@ -22,10 +22,32 @@ function get_profile_name() {
     return profileName;
 }
 
+function fetch_user_id(profile_name, callback) {
+    const userUrl = `https://www.instagram.com/api/v1/users/web_profile_info/?username=${profile_name}`;
 
+    fetch(userUrl, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'User-Agent': 'Instagram 273.0.0.16.70 (iPad13,8; iOS 16_3; en_US; en-US; scale=2.00; 2048x2732; 452417278) AppleWebKit/420+'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch user data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const userId = data?.data?.user?.id || null;
+            callback(userId);
+        })
+        .catch(error => {
+            console.error('Error fetching user ID:', error);
+            callback(null);
+        });
+}
 
-// Add delay before executing the code
-setTimeout(function() {
+setTimeout(function () {
     $(document).ready(function () {
         let profile_name = get_profile_name();
         console.log("instagram_rss for " + profile_name);
@@ -36,19 +58,20 @@ setTimeout(function() {
         let profileLink = document.querySelector('a[href="/"][role="link"]');
 
         if (profileLink) {
-            // Construct the RSS URL
-            const rssUrl = `${urlBase}/${profile_name}`;
+            fetch_user_id(profile_name, function (userId) {
+                const rssUrl = `${urlBase}/${profile_name}`;
 
-            // Create the RSS link element
-            const rssLink = document.createElement('a');
-            rssLink.href = rssUrl;
-            rssLink.innerText = 'RSS';
-            rssLink.style.marginLeft = '10px'; // Adjust margin if necessary
-            rssLink.style.fontWeight = 'bold';
-            rssLink.style.color = '#3897f0'; // Instagram-like color for consistency
+                const rssLink = document.createElement('a');
+                rssLink.href = rssUrl;
 
-            // Append the RSS link next to the profile link
-            profileLink.parentNode.insertBefore(rssLink, profileLink.nextSibling);
+                rssLink.innerText = userId ? userId : 'RSS';
+
+                rssLink.style.marginLeft = '10px';
+                rssLink.style.fontWeight = 'bold';
+                rssLink.style.color = '#3897f0';
+
+                profileLink.parentNode.insertBefore(rssLink, profileLink.nextSibling);
+            });
         }
     });
-}, 3000); // Delay in milliseconds
+}, 3000);
