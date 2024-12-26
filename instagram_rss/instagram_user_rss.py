@@ -204,27 +204,28 @@ class InstagramUserRSS:
         posts_limit=constants.POSTS_LIMIT_DEFAULT,
         reels_limit=constants.REELS_LIMIT_DEFAULT,
         tagged_limit=constants.TAGGED_LIMIT_DEFAULT,
+        dry_run=False,
     ):
         try:
-            posts = self.profile.get_posts() if posts else None
+            posts = self.profile.get_posts() if posts and not dry_run else None
         except Exception as e:  # noqa: BLE001
             LOG.error(f"Error getting posts for {self.profile.userid}: {e}")  # noqa: TRY400
             posts = None
 
         try:
-            reels = self.profile.get_reels() if reels else None
+            reels = self.profile.get_reels() if reels and not dry_run else None
         except Exception as e:  # noqa: BLE001
             LOG.error(f"Error getting reels for {self.profile.userid}: {e}")  # noqa: TRY400
             reels = None
 
         try:
-            stories = self.il.get_stories([self.profile.userid]) if stories else None
+            stories = self.il.get_stories([self.profile.userid]) if stories and not dry_run else None
         except Exception as e:  # noqa: BLE001
             LOG.error(f"Error getting stories for {self.profile.userid}: {e}")  # noqa: TRY400
             stories = None
 
         try:
-            tagged = self.profile.get_tagged_posts() if tagged else None
+            tagged = self.profile.get_tagged_posts() if tagged and not dry_run else None
         except Exception as e:  # noqa: BLE001
             LOG.error(f"Error getting tagged posts for {self.profile.userid}: {e}")  # noqa: TRY400
             tagged = None

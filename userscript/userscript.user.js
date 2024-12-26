@@ -59,7 +59,7 @@ setTimeout(function () {
 
         if (profileLink) {
             fetch_user_id(profile_name, function (userId) {
-                const rssUrl = `${urlBase}/${profile_name}`;
+                const rssUrl = `${urlBase}/${profile_name}&dry_run=1`;
 
                 const rssLink = document.createElement('a');
                 rssLink.href = rssUrl;

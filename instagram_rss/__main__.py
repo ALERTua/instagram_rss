@@ -1,6 +1,7 @@
 from __future__ import annotations
 import time
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import FastAPI, status, Response, Query
 from fastapi.responses import RedirectResponse
@@ -101,15 +102,16 @@ def get_instaloader() -> Instaloader:
 @app.get("/instagram/{query}")
 async def instagram_query(  # noqa: PLR0913
     query: str | int | None,
-    user_id: str | None = Query(default=None),
-    username: str | None = Query(default=None),
-    posts: bool | None = Query(default=env.POSTS),
-    posts_limit: int | None = Query(default=env.POSTS_LIMIT),
-    reels: bool | None = Query(default=env.REELS),
-    reels_limit: int | None = Query(default=env.REELS_LIMIT),
-    stories: bool | None = Query(default=env.STORIES),
-    tagged: bool | None = Query(default=env.TAGGED),
-    tagged_limit: int | None = Query(default=env.TAGGED_LIMIT),
+    user_id: Annotated[str | None, Query()] = None,
+    username: Annotated[str | None, Query()] = None,
+    posts: Annotated[bool | None, Query()] = env.POSTS,
+    posts_limit: Annotated[int | None, Query()] = env.POSTS_LIMIT,
+    reels: Annotated[bool | None, Query()] = env.REELS,
+    reels_limit: Annotated[int | None, Query()] = env.REELS_LIMIT,
+    stories: Annotated[bool | None, Query()] = env.STORIES,
+    tagged: Annotated[bool | None, Query()] = env.TAGGED,
+    tagged_limit: Annotated[int | None, Query()] = env.TAGGED_LIMIT,
+    dry_run: Annotated[bool | None, Query()] = False,
 ):
     user_id = user_id if user_id else (query if str(query).isnumeric() else None)
     username = username if username else (query if not str(query).isnumeric() else None)
@@ -140,6 +142,7 @@ async def instagram_query(  # noqa: PLR0913
             f"&posts_limit={posts_limit}"
             f"&reels_limit={reels_limit}"
             f"&tagged_limit={tagged_limit}"
+            f"&dry_run={dry_run}"
         )
         return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
@@ -152,8 +155,10 @@ async def instagram_query(  # noqa: PLR0913
         stories=stories,
         tagged=tagged,
         tagged_limit=tagged_limit,
+        dry_run=dry_run,
     )
-    await set_cached_item(cache_key, rss_content.decode() if isinstance(rss_content, bytes) else rss_content)
+    if not dry_run:
+        await set_cached_item(cache_key, rss_content.decode() if isinstance(rss_content, bytes) else rss_content)
     return Response(content=rss_content, media_type="application/xml", status_code=status.HTTP_200_OK)
 
 
