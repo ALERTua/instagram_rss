@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Instagram RSS Feed URL
 // @namespace    https://www.instagram.com
-// @version      1.1
+// @version      1.2
 // @description  Add Instagram RSS Feed URL Button
 // @author       Alexey ALERT Rubasheff
 // @homepageURL  https://github.com/ALERTua/instagram_rss/blob/main/userscript/userscript.user.js
