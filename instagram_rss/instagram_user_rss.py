@@ -30,7 +30,8 @@ def rss_video(url):
 
 
 def profile_link(username):
-    return f'<a href="{BASE_URL}{username}">@{username.lstrip('@')}</a>'
+    username = username.lstrip("@")
+    return f'<a href="{BASE_URL}{username}">@{username}</a>'
 
 
 def link(url, text):
