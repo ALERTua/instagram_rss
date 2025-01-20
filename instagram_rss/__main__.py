@@ -81,6 +81,7 @@ def get_instaloader() -> Instaloader:
     current_time = time.time()
     if current_time - last_login_check_time > LOGIN_CHECK_INTERVAL:
         logged_in = False
+        LOG.green("Logging in")
         if Path(env.IG_SESSION_FILEPATH).exists():
             instaloader_instance.load_session_from_file(env.IG_USERNAME, env.IG_SESSION_FILEPATH)
             logged_in = instaloader_instance.test_login()
