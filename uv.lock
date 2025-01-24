@@ -302,7 +302,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.6" },
     { name = "feedgen", specifier = ">=1.0.0" },
     { name = "global-logger", specifier = ">=0.4.2" },
-    { name = "instaloader", specifier = ">=4.14" },
+    { name = "instaloader", specifier = ">=4.14.1" },
     { name = "pendulum", specifier = ">=3.0.0" },
     { name = "pydantic", specifier = ">=2.10.4" },
     { name = "pyotp", specifier = ">=2.9.0" },
@@ -320,12 +320,15 @@ dev = [
 
 [[package]]
 name = "instaloader"
-version = "4.14"
+version = "4.14.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/57/73/61f4de60cdc21d56e61caf6a772cecafce5d86b553a1f3d8ef4ace66affb/instaloader-4.14.tar.gz", hash = "sha256:754425eb17af44ce4bb6056e4eacd044a518d13b5efc11b9d80eb229bb96c652", size = 65812 }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/67/2adb34f2fc306d5fe8610c946f4b1fc4fb517b10034ef60f61d7674556b1/instaloader-4.14.1.tar.gz", hash = "sha256:a41a7372a18fb096b3ed545469479884de9cf768e12020c0e0e67c488d9d599c", size = 65954 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/61/d7f79fd385874e85acee8f4948f823ca372b9830380df8acc21ea001ac36/instaloader-4.14.1-py3-none-any.whl", hash = "sha256:43356f696231621ea5a93354f9a4578124fe131940ee9aa1e83c20f57e18f26d", size = 67912 },
+]
 
 [[package]]
 name = "lxml"
