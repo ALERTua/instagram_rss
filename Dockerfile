@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS production
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS production
 
 LABEL maintainer="ALERT <alexey.rubasheff@gmail.com>"
 
@@ -14,6 +14,8 @@ ENV REELS_LIMIT=5
 ENV STORIES="True"
 ENV TAGGED="False"
 ENV TAGGED_LIMIT=5
+ENV TZ="Europe/London"
+ENV REDIS_URL=""
 ENV MAX_CACHE_SIZE=1000
 ENV CACHE_DURATION=3600
 ENV VERBOSE=0

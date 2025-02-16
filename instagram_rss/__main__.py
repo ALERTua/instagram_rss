@@ -9,21 +9,25 @@ from instaloader import Instaloader, TwoFactorAuthRequiredException, Profile
 from pydantic import BaseModel
 from global_logger import Log
 from pyotp import TOTP
+import shutil
 from aiocache import Cache
-from asyncio.exceptions import TimeoutError
+from asyncio.exceptions import TimeoutError  # noqa: A004
 from instagram_rss import env
 from instagram_rss.instagram_user_rss import InstagramUserRSS
 
 LOG = Log.get_logger()
 app = FastAPI()
 
-cache = Cache.from_url(env.REDIS_URL or "memory://")
-cache.ttl = env.CACHE_DURATION
-cache.timeout = 15
-
 memory_cache = Cache.from_url("memory://")
 memory_cache.ttl = env.CACHE_DURATION
 memory_cache.timeout = 15
+
+if env.REDIS_URL:
+    cache = Cache.from_url(env.REDIS_URL or "memory://")
+    cache.ttl = env.CACHE_DURATION
+    cache.timeout = 15
+else:
+    cache = memory_cache
 
 instaloader_instance = None
 last_login_check_time = 0
@@ -82,18 +86,33 @@ def get_instaloader() -> Instaloader:
     if current_time - last_login_check_time > LOGIN_CHECK_INTERVAL:
         logged_in = False
         LOG.green("Logging in")
-        if Path(env.IG_SESSION_FILEPATH).exists():
-            instaloader_instance.load_session_from_file(env.IG_USERNAME, env.IG_SESSION_FILEPATH)
+        session_file = Path(env.IG_SESSION_FILEPATH)
+        if session_file.exists():
+            LOG.green("Using the saved session")
+            instaloader_instance.load_session_from_file(env.IG_USERNAME, str(session_file))
             logged_in = instaloader_instance.test_login()
+            if not logged_in:
+                LOG.red("Session is invalid. Removing the saved session")
+                shutil.move(str(session_file), str(session_file) + ".bak")
 
         if not logged_in:
+            LOG.green("Logging in from scratch")
             try:
                 instaloader_instance.login(env.IG_USERNAME, env.IG_PASSWORD)
             except TwoFactorAuthRequiredException:
                 totp = TOTP(env.IG_OTP)
                 otp = totp.now()
                 instaloader_instance.two_factor_login(otp)
-            instaloader_instance.save_session_to_file(env.IG_SESSION_FILEPATH)
+            except Exception:
+                LOG.exception("Error logging in. Check password")
+                raise
+
+            logged_in = instaloader_instance.test_login()
+            if logged_in:
+                LOG.green("Logged in successfully. Saving session")
+                instaloader_instance.save_session_to_file(env.IG_SESSION_FILEPATH)
+            else:
+                LOG.warning("Login from scratch failed")
 
         last_login_check_time = current_time  # Update the last login check time
 

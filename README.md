@@ -27,6 +27,8 @@ STORIES="True"  # Include Stories Default Value
 TAGGED="False"  # Include Tagged Posts Default Value
 TAGGED_LIMIT=5  # Tagged Posts Limit Default Value
 
+TZ=Europe/London  # Timezone
+
 # query cache duration in seconds
 CACHE_DURATION=3600
 

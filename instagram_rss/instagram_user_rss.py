@@ -1,5 +1,5 @@
 from __future__ import annotations
-import pendulum
+from zoneinfo import ZoneInfo
 from datetime import datetime
 from itertools import islice
 from typing import TYPE_CHECKING
@@ -12,12 +12,11 @@ if TYPE_CHECKING:
     from instaloader import Profile, NodeIterator, Post, Story, PostSidecarNode, Instaloader, StoryItem
 
 LOG = Log.get_logger()
-TZ = pendulum.tz.local_timezone()
 BASE_URL = "https://www.instagram.com/"
 
 
 def rss_image(url, i, post_link):
-    _link = f"{post_link}?img_index={i+1}"
+    _link = f"{post_link}?img_index={i + 1}"
     return f'<br><br><img src="{url}"/><a href="{_link}">{_link}</a>'
 
 
@@ -88,7 +87,7 @@ class InstagramUserRSS:
             )
             entry.title(content)
             entry.content(content)
-            post_date = datetime.fromtimestamp(pendulum.now(TZ).timestamp(), tz=TZ)
+            post_date = datetime.now(tz=ZoneInfo(env.TZ))
             entry.published(post_date)
             entry.updated(post_date)
             entries.append(entry)
@@ -112,7 +111,7 @@ class InstagramUserRSS:
                 entry = FeedEntry()
                 post_link = f"{self.base_url}p/{post.shortcode}/"
                 LOG.info(
-                    f"Parsing result {i+1}/{len(all_posts)} for {self.profile.username} ({self.profile.userid})"
+                    f"Parsing result {i + 1}/{len(all_posts)} for {self.profile.username} ({self.profile.userid})"
                     f" @ {post_link}",
                 )
                 entry.id(post_link)
@@ -173,7 +172,7 @@ class InstagramUserRSS:
                     title = f"{story.owner_username} story"
                     entry.title(title)
                     entry.source(url=story_link, title=title)
-                    post_content = f'{profile_link(story.owner_username)} {link(story_link, "story")}<br>{title}'
+                    post_content = f"{profile_link(story.owner_username)} {link(story_link, 'story')}<br>{title}"
                     post_date = story_item.date_local
                     entry.published(post_date)
                     entry.updated(post_date)

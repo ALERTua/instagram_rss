@@ -34,7 +34,6 @@ ignore = [
     "D415", # First line should end with a period
     "D400", # First line should end with a period
     "D205", # 1 blank line required between summary line and description
-    "ANN101", # Missing type annotation for `self` in method
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
     "D203", # no-blank-line-before-class (incompatible with formatter)
     "D212", # multi-line-summary-first-line (incompatible with formatter)
@@ -56,6 +55,7 @@ ignore = [
     "TD002", # Missing author in TODO
     "FBT002", # Boolean default positional argument in function definition
     "S104", # Possible binding to all interfaces
+    "Q000", # Double quotes
 ]
 [lint.per-file-ignores]
 "__init__.py" = ["F401", "D104"]

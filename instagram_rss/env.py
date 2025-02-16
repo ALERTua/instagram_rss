@@ -21,7 +21,7 @@ IG_OTP = os.getenv("IG_OTP")
 IG_SESSION_FILEPATH = os.getenv("IG_SESSION_FILEPATH", str(constants.IG_SESSION_FILEPATH_DEFAULT))
 assert IG_SESSION_FILEPATH, "IG_SESSION_FILEPATH environment variable not set"
 
-REDIS_URL = os.getenv("REDIS_URL", None)
+REDIS_URL = os.getenv("REDIS_URL", "")
 PORT = os.getenv("PORT", "8000")
 
 POSTS = strtobool(os.getenv("POSTS", str(constants.POSTS_DEFAULT)))  # posts boolean default value
@@ -31,5 +31,6 @@ REELS_LIMIT = int(os.getenv("REELS_LIMIT", constants.REELS_LIMIT_DEFAULT))  # Ma
 STORIES = strtobool(os.getenv("STORIES", str(constants.STORIES_DEFAULT)))  # stories boolean default value
 TAGGED = strtobool(os.getenv("TAGGED", str(constants.TAGGED_DEFAULT)))  # tagged boolean default value
 TAGGED_LIMIT = int(os.getenv("TAGGED_LIMIT", constants.TAGGED_LIMIT_DEFAULT))  # Max number of tagged posts to fetch
+TZ = os.getenv("TZ", constants.TZ_DEFAULT)
 
 CACHE_DURATION = int(os.getenv("CACHE_DURATION", "3600"))  # Cache duration in seconds
