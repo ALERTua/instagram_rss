@@ -5,14 +5,14 @@ from typing import Annotated
 
 from fastapi import FastAPI, status, Response, Query
 from fastapi.responses import RedirectResponse
-from instaloader import Instaloader, TwoFactorAuthRequiredException, Profile
+from instaloader import Instaloader, TwoFactorAuthRequiredException, Profile, ProfileNotExistsException
 from pydantic import BaseModel
 from global_logger import Log
 from pyotp import TOTP
 import shutil
 from aiocache import Cache
 from asyncio.exceptions import TimeoutError  # noqa: A004
-from instagram_rss import env
+from instagram_rss import env, tools
 from instagram_rss.instagram_user_rss import InstagramUserRSS
 
 LOG = Log.get_logger()
@@ -152,7 +152,15 @@ async def instagram_query(  # noqa: PLR0913
     if user_id:
         profile = Profile.from_id(il.context, user_id)
     else:
-        profile = Profile.from_username(il.context, username)
+        try:
+            profile = Profile.from_username(il.context, username)
+        except ProfileNotExistsException as e:
+            rss_content = tools.generate_erroreus_rss_feed(f"{type(e)}: {e!s}")
+            return Response(content=rss_content, media_type="application/xml", status_code=status.HTTP_200_OK)
+        except Exception as e:  # noqa: BLE001
+            rss_content = tools.generate_erroreus_rss_feed(f"{type(e)}: {e!s}")
+            return Response(content=rss_content, media_type="application/xml", status_code=status.HTTP_200_OK)
+
         url = (
             f"/instagram/{profile.userid}"
             f"?posts=0"
