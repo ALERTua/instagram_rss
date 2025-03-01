@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 from global_logger import Log
 from dotenv import load_dotenv

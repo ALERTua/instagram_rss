@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 IG_SESSION_FILEPATH_DEFAULT = "/data/session.json"
 POSTS_DEFAULT = True
 POSTS_LIMIT_DEFAULT = 5
