@@ -135,23 +135,23 @@ wheels = [
 
 [[package]]
 name = "curl-cffi"
-version = "0.9.0"
+version = "0.10.0b1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "cffi" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9f/7d/c326faf5a772a11011dcc30aca5b64c197bcf59fdd9b90bf28b700d6d682/curl_cffi-0.9.0.tar.gz", hash = "sha256:4818e074b61cb209bd8d4d0d03783313d4773e6b51f8b815e25aad9cc146a7b7", size = 144117 }
+sdist = { url = "https://files.pythonhosted.org/packages/6c/60/0c285ca11d02be62822369365fc169a977ff86860249046be0ddf1563776/curl_cffi-0.10.0b1.tar.gz", hash = "sha256:afed7797ccb030726c0081d4ddf63d081605520fbb95bcf5c2b94bf7eb860514", size = 143851 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2a/96/befafab403a12a25e9fca376da20512b5962a2bf5810921c2fd27c01e96f/curl_cffi-0.9.0-cp38-abi3-macosx_10_9_x86_64.whl", hash = "sha256:429a14e724898b7001be2776caa87c294e8062f0ac652619df5854eeae6e156c", size = 5222822 },
-    { url = "https://files.pythonhosted.org/packages/2a/88/c3dfdf28448fad4be68a37cf758941583e4c1ff300b4e384197bedfda493/curl_cffi-0.9.0-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:7968c3ea37bec96bbe4b623c0fa59c09d3cdaf173da2e0a516b19db52f05caa4", size = 2699320 },
-    { url = "https://files.pythonhosted.org/packages/3d/7a/feda016a35e904f0e4f753d41677f343e63271373b9c3648183e8f29ca76/curl_cffi-0.9.0-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:26d61c5b5c59e9c4a006cba35feccd73c75ce981db0da89a3da88dd280ead7a0", size = 6973724 },
-    { url = "https://files.pythonhosted.org/packages/28/27/d0cbb7a7cc9c444688c06cb41271d7ee7d429966d77dbaedbf19dd52d30e/curl_cffi-0.9.0-cp38-abi3-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7b1177203e47d3248ccb250e63983eaddf39fce5332f91cc2993ea54cae5aa21", size = 6761183 },
-    { url = "https://files.pythonhosted.org/packages/c1/2f/75c971a345737c330d98fe75f7ef538209d77aa3f1197752766566815bac/curl_cffi-0.9.0-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7f41bd0a5dafe3fe19319da1c31302a40634ec4779769ca3d954d8673eb2b4f2", size = 7361758 },
-    { url = "https://files.pythonhosted.org/packages/e3/3b/0b11dfcdd4dcbefa025e8049f9479ace3321435afb6f78e3394cea395591/curl_cffi-0.9.0-cp38-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:752a4686c062a8bd6e25961845ea812704ba089a0e6863957deb2a30590105bb", size = 7762002 },
-    { url = "https://files.pythonhosted.org/packages/11/76/f2c551acfb6538c3932734b83ae7b87baf7b795852b6600a7519ff68bb05/curl_cffi-0.9.0-cp38-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:ea8f0511bc6882d30a985ddc53fa26d109f2977715d4851aef162bfa308cd2a8", size = 7760972 },
-    { url = "https://files.pythonhosted.org/packages/f3/0f/3eab3d6170813947c7ba2971ec516322be2678a088f190ead0bf45d7e596/curl_cffi-0.9.0-cp38-abi3-win32.whl", hash = "sha256:202145686c5ebc00635b9b15cc8afa82523f14197a640b618bb09d59e74889ba", size = 1057266 },
-    { url = "https://files.pythonhosted.org/packages/e5/49/7207356b343d9aa3590461035eabcef838af4c8d042ddac687fce878a999/curl_cffi-0.9.0-cp38-abi3-win_amd64.whl", hash = "sha256:81ba09622e68f8392236212dd0afd75dcd18cbe1be16467deb4d441d62cfc8a3", size = 1326902 },
+    { url = "https://files.pythonhosted.org/packages/62/5b/2dfd9904c733431adcc3a58388abba64a8cc65d3c5fc90b09d18b1be033e/curl_cffi-0.10.0b1-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:b155cb7469776b005888759926413bce8efdeeefaa41cc889c066a8d4032c3db", size = 5223768 },
+    { url = "https://files.pythonhosted.org/packages/df/a7/135b18bd0b0486b765831ee828f9e33448d52be3a13feeca43b9a2a6ebb3/curl_cffi-0.10.0b1-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:e282cdbcfff506eb8cd4202db013e32829553c4a61ec3823c8569f2831b96e03", size = 2699034 },
+    { url = "https://files.pythonhosted.org/packages/74/ef/61ee7e70c73775b485fd664a830558b6829b7babbfd6f7c7885499e676b4/curl_cffi-0.10.0b1-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:54b25b8e69af63676659f3ee2dfea0f40390753d16cffce191de14d6580668da", size = 7067476 },
+    { url = "https://files.pythonhosted.org/packages/0a/2b/845efe67365793addfccdafb42f1999434772a3d0d094736df9a95495cca/curl_cffi-0.10.0b1-cp39-abi3-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:4330206da464addd5455c6c6f1556f1ac88ee3521a0a4ce18a5d97c4584ddc89", size = 6624033 },
+    { url = "https://files.pythonhosted.org/packages/b2/de/e346137c56612db4a098a41cedcab6b0075436b63c448774c87913cfa395/curl_cffi-0.10.0b1-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:db3112c0b60f941b0cdbcf571c49902e77f456c84ffd0182af058f0acd255016", size = 7446645 },
+    { url = "https://files.pythonhosted.org/packages/f7/e2/ddecfa9ceeb53d10e55f63fcbfec3fa3f333dc389669810005831ed5bac2/curl_cffi-0.10.0b1-cp39-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:1245a77341306f542521b6d47dae171c027f14e0543b1be7c7fee0348dfdc5e4", size = 7891766 },
+    { url = "https://files.pythonhosted.org/packages/47/3b/05b671ff3e368f1ae2226f92968f1f4ee29028f3621232796dcd9b4b8896/curl_cffi-0.10.0b1-cp39-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:de9416d53746e2e3ff48b435f7436ffcae9979b0b282235e996d956b4d39fa26", size = 7831499 },
+    { url = "https://files.pythonhosted.org/packages/be/cc/7beb6e875830b028b148338dd42de6d5f4f5b81af8e4de40282b3a2980cb/curl_cffi-0.10.0b1-cp39-abi3-win32.whl", hash = "sha256:a52e5f48ffb889a73a017327101a82c7b8d0869121fa607bbc56440b03a6dd48", size = 1086626 },
+    { url = "https://files.pythonhosted.org/packages/17/1d/7aa3debbd3f84173388d7e99fb3418266e65face0048baadf167726dc543/curl_cffi-0.10.0b1-cp39-abi3-win_amd64.whl", hash = "sha256:8b7fb25de438f271cd8ab8078bd829cbb00abdf04e49e910080c16b4cf0ccc25", size = 1373554 },
 ]
 
 [[package]]
@@ -165,16 +165,16 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.115.10"
+version = "0.115.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "starlette" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/00/48/96e3cf457a5a64c23abe8453358b68ebc6755ac1b2bc4c8874c3cc94cd56/fastapi-0.115.10.tar.gz", hash = "sha256:920cdc95c1c6ca073656deae80ad254512d131031c2d7759c87ae469572911ee", size = 293749 }
+sdist = { url = "https://files.pythonhosted.org/packages/b5/28/c5d26e5860df807241909a961a37d45e10533acef95fc368066c7dd186cd/fastapi-0.115.11.tar.gz", hash = "sha256:cc81f03f688678b92600a65a5e618b93592c65005db37157147204d8924bf94f", size = 294441 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/8c/b49611a3daf01c3980d1da920a63ff4dc12d607d0edcb8a86ba331a7c686/fastapi-0.115.10-py3-none-any.whl", hash = "sha256:47346c5437e933e68909a835cf63890a9bd52fb6091b2499b996c08a01ca43a5", size = 94928 },
+    { url = "https://files.pythonhosted.org/packages/b3/5d/4d8bbb94f0dbc22732350c06965e40740f4a92ca560e90bb566f4f73af41/fastapi-0.115.11-py3-none-any.whl", hash = "sha256:32e1541b7b74602e4ef4a0260ecaf3aadf9d4f19590bba3e1bf2ac4666aa2c64", size = 94926 },
 ]
 
 [[package]]
@@ -239,7 +239,7 @@ wheels = [
 
 [[package]]
 name = "instagram-rss"
-version = "0.1.0"
+version = "0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiocache", extra = ["redis"] },
@@ -266,8 +266,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiocache", extras = ["redis"], specifier = ">=0.12.3" },
-    { name = "curl-cffi", specifier = ">=0.9.0" },
-    { name = "fastapi", specifier = ">=0.115.10" },
+    { name = "curl-cffi", specifier = ">=0.10.0b1" },
+    { name = "fastapi", specifier = ">=0.115.11" },
     { name = "feedgen", specifier = ">=1.0.0" },
     { name = "global-logger", specifier = ">=0.4.3" },
     { name = "instaloader", specifier = ">=4.14.1" },
