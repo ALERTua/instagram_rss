@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Instagram RSS Feed URL
 // @namespace    https://www.instagram.com
-// @version      1.2
+// @version      1.2.1
 // @description  Add Instagram RSS Feed URL Button
 // @author       Alexey ALERT Rubasheff
 // @homepageURL  https://github.com/ALERTua/instagram_rss/blob/main/userscript/userscript.user.js
@@ -49,15 +49,16 @@ function fetch_user_id(profile_name, callback) {
 
 setTimeout(function () {
     $(document).ready(function () {
+        let homeButton = document.querySelector('a[href="/"][role="link"]');
+        homeButton.href = "https://instagram.com/?variant=following";
+
         let profile_name = get_profile_name();
         console.log("instagram_rss for " + profile_name);
         if (!profile_name) {
             return;
         }
 
-        let profileLink = document.querySelector('a[href="/"][role="link"]');
-
-        if (profileLink) {
+        if (homeButton) {
             fetch_user_id(profile_name, function (userId) {
                 const rssUrl = `${urlBase}/${profile_name}&dry_run=1`;
 
@@ -70,7 +71,7 @@ setTimeout(function () {
                 rssLink.style.fontWeight = 'bold';
                 rssLink.style.color = '#3897f0';
 
-                profileLink.parentNode.insertBefore(rssLink, profileLink.nextSibling);
+                homeButton.parentNode.insertBefore(rssLink, homeButton.nextSibling);
             });
         }
     });
