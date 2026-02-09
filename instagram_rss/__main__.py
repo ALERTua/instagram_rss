@@ -133,8 +133,8 @@ async def instagram_query(  # noqa: PLR0913
     tagged_limit: Annotated[int | None, Query()] = env.TAGGED_LIMIT,
     dry_run: Annotated[bool | None, Query()] = False,
 ):
-    user_id = user_id if user_id else (query if str(query).isnumeric() else None)
-    username = username if username else (query if not str(query).isnumeric() else None)
+    user_id = user_id or (query if str(query).isnumeric() else None)
+    username = username or (query if not str(query).isnumeric() else None)
     if not any([user_id, username]):
         return Response(
             content="Please provide a username or user_id",
