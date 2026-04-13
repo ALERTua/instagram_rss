@@ -15,7 +15,7 @@ dependencies = [
     "pyotp>=2.9.0",
     "python-dotenv>=1.2.2",
     "ratelimit>=2.2.1",
-    "setuptools>=75.8.2",
+    "setuptools>=78.1.1",
     "tzdata>=2026.1",
     "uvicorn>=0.44.0",
 ]
